@@ -13332,7 +13332,7 @@ let _webRInstance=null; // Cache WebR instance for re-runs
 let _netmetaAvailable=null; // null=untested, true/false after first attempt
 let _running=false; // [P0-6] Race condition guard
 
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+const esc=Security.escapeHtml; // [R7-P2-9] reuse app's escapeHtml
 function fmtNum(v,dp=6){return(v===null||v===undefined||!Number.isFinite(v))?'N/A':v.toFixed(dp);}
 function fmtPct(v){return(v===null||v===undefined||!Number.isFinite(v))?'N/A':v.toFixed(1)+'%';}
 
@@ -13355,8 +13355,8 @@ function injectWebRCard(){
     '<p style="font-size:13px;color:var(--text-secondary,#666);margin:0 0 4px;">'+
     'Runs R <code>netmeta</code> (Schwarzer et al.) in-browser via WebR. Compares <strong>all</strong> network estimates, heterogeneity, P-scores, and rankings against NMA Pro.'+
     '</p>'+
-    '<p style="font-size:12px;color:var(--text-tertiary,#999);margin:0 0 12px;">'+
-    'First run downloads ~30-50 MB (WebR + packages). Subsequent runs use cached instance.</p>'+
+    '<p style="font-size:12px;color:var(--text-secondary,#666);margin:0 0 12px;">'+
+    'First run downloads ~30-50 MB (may take 1-2 min on slow connections). Subsequent runs use cached instance.</p>'+
     '<div id="webr-netmeta-progress" style="display:none;" role="status" aria-live="polite">'+
     '<div style="background:var(--surface-raised,#f3f4f6);border-radius:8px;overflow:hidden;height:6px;margin-bottom:8px;">'+
     '<div id="webr-netmeta-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="WebR validation progress" style="height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#6366f1);border-radius:8px;transition:width 0.4s ease;"></div></div>'+
@@ -13365,11 +13365,11 @@ function injectWebRCard(){
     '</div>';
   panel.appendChild(card);
   document.getElementById('runWebRNetmetaBtn').addEventListener('click',runFullValidation);
+  obs.disconnect(); // [R7-P2-2] stop observing after successful injection
 }
 const obs=new MutationObserver(()=>injectWebRCard());
 obs.observe(document.body,{childList:true,subtree:true});
 document.addEventListener('DOMContentLoaded',injectWebRCard);
-setTimeout(injectWebRCard,2000);
 
 /* ── Progress helpers ── */
 function showProgress(pct,msg){
@@ -13409,7 +13409,7 @@ async function runFullValidation(){
   const em=window.AppState?.effectMeasure||'OR';
   const estimatorJS=window.AppState?.estimator||'REML';
   const direction=window.AppState?.direction||'lower';
-  const confLevel=window.AppState?.confLevel??0.95;
+  const confLevel=Math.min(0.999,Math.max(0.5,Number(window.AppState?.confLevel)||0.95)); // [R9-P2] validated
   const isBinary=['OR','RR','HR','RD'].includes(em);
   const isCont=['SMD','MD'].includes(em);
   const isRatio=['OR','RR','HR'].includes(em);
@@ -13419,8 +13419,9 @@ async function runFullValidation(){
     showProgress(5,'Loading WebR v0.4.4...');
     if(!_webRInstance){
       const {WebR}=await import('https://webr.r-wasm.org/v0.4.4/webr.mjs');
-      _webRInstance=new WebR();
-      await _webRInstance.init();
+      const wr=new WebR();
+      await Promise.race([wr.init(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('WebR initialization timed out after 90 seconds. Check HTTPS and SharedArrayBuffer support.')),90000))]); // [R9-P2-3]
+      _webRInstance=wr;
     }
     const webR=_webRInstance;
 
@@ -13434,7 +13435,8 @@ async function runFullValidation(){
         _netmetaAvailable=true;
         useNetmeta=true;
       }catch(e){
-        _netmetaAvailable=false;
+        // [R7-P2-3] Only cache false for "not found"; leave null for transient errors to allow retry
+        _netmetaAvailable=String(e.message||'').includes('timed out')?null:false;
         try{
           await webR.installPackages(['metafor'],{quiet:true});
           await webR.evalRVoid('library(metafor)');
@@ -13463,6 +13465,13 @@ async function runFullValidation(){
       /* [P0-4] Use JS-processed yi/seTE to avoid CC mismatch. One unified path. */
       const processed=results.processed||[];
       const validRows=processed.filter(s=>Number.isFinite(s.yi)&&Number.isFinite(s.vi)&&s.vi>0);
+      if(validRows.length>300){ // [R9-P2-1] guard large datasets
+        out.innerHTML='<div style="padding:12px;background:#fffbeb;border-radius:8px;color:#92400e;margin-top:8px;">Dataset too large for in-browser R validation ('+validRows.length+' comparisons, max 300). Use the Export R Code button to validate in desktop R instead.</div>';
+        if(btn){btn.disabled=false;btn.textContent='Validate with R';btn.removeAttribute('aria-busy');}
+        _running=false;
+        document.getElementById('webr-netmeta-progress').style.display='none';
+        return;
+      }
       if(!validRows.length){
         out.innerHTML='<div style="padding:12px;background:#fef2f2;border-radius:8px;color:#991b1b;margin-top:8px;">No valid processed effect sizes found. Run the NMA analysis first.</div>';
         if(btn){btn.disabled=false;btn.textContent='Validate with R';btn.removeAttribute('aria-busy');}
@@ -13579,12 +13588,13 @@ toJSON(out, auto_unbox=TRUE, digits=10)`;
     showProgress(60,'Executing R analysis...');
     const rResult=await webR.evalR(rCode);
     const jsonStr=await rResult.toArray();
-    try{await rResult.destroy();}catch(e){} // [P1-12] free R object
+    try{await rResult.destroy();}catch(e){console.warn('WebR object cleanup:',e);} // [R9-P2-2]
+    if(!jsonStr?.length)throw new Error('R returned no output — check data validity'); // [R9-P2-4]
     const rData=JSON.parse(jsonStr[0]);
 
     /* ── Step 5: Compare results ── */
     showProgress(85,'Comparing JS vs R results...');
-    const comparison=compareResults(results,rData,ref,em,isRatio,confLevel,direction);
+    const comparison=compareResults(results,rData,ref,em,isRatio); // [R7-P2-8] removed unused params
 
     /* ── Step 6: Render ── */
     showProgress(100,'Done!');
@@ -13604,8 +13614,10 @@ toJSON(out, auto_unbox=TRUE, digits=10)`;
     const prog=document.getElementById('webr-netmeta-progress');
     if(prog)prog.style.display='none';
     out.innerHTML='<div style="padding:12px;background:#fef2f2;border-radius:8px;color:#991b1b;margin-top:8px;">'+
-      '<strong>WebR validation failed:</strong> '+esc(String(err.message||err).slice(0,200))+'<br>'+
-      '<span style="font-size:12px;">Ensure: (1) HTTPS or localhost, (2) modern browser with SharedArrayBuffer, (3) NMA analysis completed first.</span></div>';
+      '<strong>The in-browser R engine could not complete validation.</strong><br>'+
+      '<span style="font-size:13px;">Common causes: (1) page not served over HTTPS, (2) browser does not support SharedArrayBuffer, (3) NMA analysis not yet run, (4) network issue downloading R packages.</span><br>'+
+      '<details style="margin-top:8px;"><summary style="cursor:pointer;font-size:12px;">Technical details</summary>'+
+      '<pre style="font-size:11px;margin-top:4px;white-space:pre-wrap;">'+esc(String(err.message||err).slice(0,500))+'</pre></details></div>';
   }finally{
     _running=false; // [P0-6]
     if(btn){btn.disabled=false;btn.textContent='Validate with R';btn.removeAttribute('aria-busy');} // [P1-5]
@@ -13659,7 +13671,7 @@ toJSON(out, auto_unbox=TRUE, digits=10)`;
 }
 
 /* ── Compare JS and R results ── */
-function compareResults(jsResults,rData,ref,em,isRatio,confLevel,direction){
+function compareResults(jsResults,rData,ref,em,isRatio){
   const tol={effect:0.01,se:0.01,tau2:0.005,I2:1.0,Q:0.5,pScore:0.03,pValue:0.02}; // [P1-7] tightened pValue
   const checks=[];
   const isNetmeta=rData.engine==='netmeta';
@@ -13787,7 +13799,7 @@ function compareResults(jsResults,rData,ref,em,isRatio,confLevel,direction){
   const failed=checks.filter(c=>!c.pass).length;
   const total=checks.length;
   const pct=total>0?(passed/total*100):0;
-  const level=pct>=95?'Excellent':pct>=85?'High':pct>=70?'Moderate':'Low';
+  const level=pct>=99?'Excellent':pct>=95?'Good':pct>=85?'Moderate — review failures':'Low — investigation required'; // [R7-P2-5]
 
   return{checks,passed,failed,total,pct,level,isNetmeta,engine:rData.engine||'unknown'};
 }
@@ -13814,8 +13826,8 @@ function spearmanRho(xs,ys){
 
 /* ── Render the report ── */
 function renderValidationReport(container,comp,ref,em,isRatio,estimator,rData,confLevel){
-  const tone=comp.level==='Excellent'?'#16a34a':comp.level==='High'?'#3b82f6':comp.level==='Moderate'?'#d97706':'#dc2626';
-  const bg=comp.level==='Excellent'?'#f0fdf4':comp.level==='High'?'#eff6ff':comp.level==='Moderate'?'#fffbeb':'#fef2f2';
+  const tone=comp.level==='Excellent'?'#16a34a':comp.level==='Good'?'#3b82f6':comp.level.startsWith('Moderate')?'#d97706':'#dc2626';
+  const bg=comp.level==='Excellent'?'#f0fdf4':comp.level==='Good'?'#eff6ff':comp.level.startsWith('Moderate')?'#fffbeb':'#fef2f2';
   const engine=comp.isNetmeta?'R netmeta (Schwarzer et al.)':'R metafor (pairwise fallback)';
 
   let html='<div style="margin-top:12px;">';
