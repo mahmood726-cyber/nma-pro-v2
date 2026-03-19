@@ -1,4 +1,35 @@
-## REVIEW CLEAN — ALL P0+P1 fixed (Round 7)
+## REVIEW CLEAN — ALL P0+P1 fixed (Rounds 7-9)
+
+---
+
+## Round 9: Verification Review (2026-03-19)
+### Personas: Statistical Methodologist, Security Auditor, Software Engineer, Domain Expert
+### Summary: 2 P0, 5 P1, 7 P2 — **ALL P0+P1 FIXED**
+
+#### P0 — Critical
+- **R9-P0-1** [FIXED] [Domain] method.tau="FE" is invalid for netmeta — FE validation always errors (line 13478)
+  - Fix: FE now uses method.tau="REML" (ignored when common=TRUE)
+- **R9-P0-2** [FIXED] [Domain] net$lower.predict doesn't exist — should be lower.predict.random (lines 13537-13540)
+  - Fix: Changed to net$lower.predict.random / net$upper.predict.random
+
+#### P1 — Important
+- **R9-P1-1** [FIXED] [Stat+Domain] Netsplit reads ns$random even for FE — wrong model (lines 13558-13564)
+  - Fix: Uses mat variable to select ns$common vs ns$random components
+- **R9-P1-2** [FIXED] [Domain] level.comb deprecated in netmeta >= 7.0 (lines 13509, 13556)
+  - Fix: Changed to level= throughout
+- **R9-P1-3** [FIXED] [Domain] net$TE.random used for indexing in FE model (lines 13526-13527)
+  - Fix: Uses match(t, trts) instead of rownames(net$TE.random)
+- **R9-P1-4** [FIXED] [Domain] Tolerance docs said 0.05 for p-values but code uses 0.02 (line 13922)
+  - Fix: Docs updated to match code (±0.02)
+- **R9-P1-5** [FIXED] [SWE] buildRDataFrame is dead code — called but result unused (line 13475)
+  - Fix: Removed function and call entirely
+
+#### P2 — Minor (not fixed)
+- R9-P2-1 to P2-7: dataset size guard, confLevel type validation, rStr \f/\v, destroy() logging, WebR timeout, jsonStr guard, league table confLevel
+
+---
+
+## Round 7-8: WebR netmeta Validation (2026-03-19)
 ## Multi-Persona Review: WebR netmeta Validation (Round 7)
 ### Date: 2026-03-19
 ### Scope: WebR full network validation feature (~810 lines, lines 13327-14137)

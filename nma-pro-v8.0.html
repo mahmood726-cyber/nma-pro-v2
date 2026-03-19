@@ -13381,28 +13381,6 @@ function showProgress(pct,msg){
   if(status)status.textContent=msg;
 }
 
-/* ── Build R data frame from AppState studies ── */
-function buildRDataFrame(studies,em){
-  const isBinary=['OR','RR','HR','RD'].includes(em);
-  const isCont=['SMD','MD'].includes(em);
-  const rows=[];
-  for(const s of studies){
-    const hasDirectIV=Number.isFinite(Number(s.yi))&&(Number.isFinite(Number(s.vi))&&Number(s.vi)>0||Number.isFinite(Number(s.se))&&Number(s.se)>0);
-    rows.push({
-      study:String(s.name||'').replace(/"/g,"'"),
-      treat1:String(s.treatment1||'').replace(/"/g,"'"),
-      treat2:String(s.treatment2||'').replace(/"/g,"'"),
-      event1:Number(s.events1)||0, n1:Number(s.n1)||0,
-      event2:Number(s.events2)||0, n2:Number(s.n2)||0,
-      mean1:Number(s.mean1)||0, sd1:Number(s.sd1)||0,
-      mean2:Number(s.mean2)||0, sd2:Number(s.sd2)||0,
-      yi:hasDirectIV?Number(s.yi):null,
-      se:hasDirectIV?(Number.isFinite(Number(s.se))&&Number(s.se)>0?Number(s.se):Math.sqrt(Number(s.vi))):null
-    });
-  }
-  return{rows,isBinary,isCont};
-}
-
 /* ── Sanitize R string ── */
 /* [P0-2] Escape newlines/tabs/null to prevent R code injection */
 function rStr(s){return'"'+String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n').replace(/\r/g,'\\r').replace(/\t/g,'\\t').replace(/\0/g,'')+'"';}
@@ -13472,10 +13450,8 @@ async function runFullValidation(){
 
     /* ── Step 3: Build data and send to R ── */
     showProgress(40,useNetmeta?'Running R netmeta NMA...':'Running R metafor NMA (netmeta unavailable)...');
-    const {rows}=buildRDataFrame(studies,em);
-
-    // Map estimator
-    const rMethodTau=estimatorJS==='DL'?'DL':estimatorJS==='FE'?'FE':'REML';
+    // Map estimator — [R9-P0-1] FE must use valid method.tau (DL is ignored when common=TRUE)
+    const rMethodTau=estimatorJS==='DL'?'DL':'REML'; // FE→REML (tau ignored for common-effect)
     const rCommon=estimatorJS==='FE'?'TRUE':'FALSE';
     const rRandom=estimatorJS==='FE'?'FALSE':'TRUE';
     const smallValues=direction==='lower'?'desirable':'undesirable';
@@ -13506,7 +13482,7 @@ net <- netmeta(TE, seTE, treat1, treat2, studlab,
                sm=${rStr(em)}, reference.group=${rStr(ref)},
                common=${rCommon}, random=${rRandom},
                method.tau=${rStr(rMethodTau)},
-               level.comb=${confLevel}, level.ma=${confLevel}${hksjArg})
+               level=${confLevel}${hksjArg})
 rnk <- tryCatch(
   netrank(net, small.values=${rStr(smallValues)}),
   error=function(e) tryCatch(netrank(net, small.values=${rStr(smallValuesFallback)}), error=function(e2) NULL)
@@ -13523,8 +13499,8 @@ league <- list()
 predict_list <- list()
 for(t in trts){
   if(t==rref) next
-  idx <- which(rownames(net$TE.random)==t)
-  ridx <- which(colnames(net$TE.random)==rref)
+  idx <- match(t, trts)
+  ridx <- match(rref, trts)
   if(mat=="common"){
     effs[[t]] <- list(estimate=net$TE.common[idx,ridx], se=net$seTE.common[idx,ridx],
       ci_lower=net$lower.common[idx,ridx], ci_upper=net$upper.common[idx,ridx],
@@ -13535,8 +13511,8 @@ for(t in trts){
       pvalue=net$pval.random[idx,ridx])
   }
   predict_list[[t]] <- tryCatch(list(
-    lower=net$lower.predict[idx,ridx],
-    upper=net$upper.predict[idx,ridx]
+    lower=net$lower.predict.random[idx,ridx],
+    upper=net$upper.predict.random[idx,ridx]
   ), error=function(e) list(lower=NA, upper=NA))
 }
 for(i in seq_along(trts)){
@@ -13553,15 +13529,19 @@ for(i in seq_along(trts)){
   }
 }
 ns_results <- tryCatch({
-  ns <- netsplit(net, level.comb=${confLevel})
+  ns <- netsplit(net, level=${confLevel})
   ns_list <- list()
-  for(i in seq_len(nrow(ns$random))){
+  ns_df <- if(mat=="common") ns$common else ns$random
+  ns_direct <- if(mat=="common") ns$direct.common else ns$direct.random
+  ns_indirect <- if(mat=="common") ns$indirect.common else ns$indirect.random
+  ns_compare <- if(mat=="common") ns$compare.common else ns$compare.random
+  for(i in seq_len(nrow(ns_df))){
     comp <- ns$comparison[i]
     ns_list[[comp]] <- list(
-      direct=ns$direct.random$TE[i],
-      indirect=ns$indirect.random$TE[i],
-      diff=ns$compare.random$TE[i],
-      pvalue=ns$compare.random$p[i]
+      direct=ns_direct$TE[i],
+      indirect=ns_indirect$TE[i],
+      diff=ns_compare$TE[i],
+      pvalue=ns_compare$p[i]
     )
   }
   ns_list
@@ -13919,7 +13899,7 @@ function renderValidationReport(container,comp,ref,em,isRatio,estimator,rData,co
       <li>I-squared: &plusmn;1.0 percentage points</li>
       <li>Q statistic: &plusmn;0.5</li>
       <li>P-scores: &plusmn;0.03</li>
-      <li>Node-split p-values: &plusmn;0.05</li>
+      <li>Node-split p-values: &plusmn;0.02</li>
       <li>Rank correlation: Spearman rho &ge; 0.95</li>
     </ul>
     <p><strong>Note:</strong> Small differences (&lt;tolerance) are expected due to floating-point precision, continuity corrections, and algorithm implementation choices. These do not indicate errors.</p>
