@@ -1,0 +1,36 @@
+# Temp files
+.tmp_*
+tmpclaude-*
+__pycache__/
+
+# Node
+node_modules/
+
+# Backup files
+*.backup
+*.backup_*
+*.pre-fix
+*.pre_*
+*.html.enhancements_backup
+*.html.final_backup
+*.html.methodology_backup
+*.html.phase3_backup
+*.html.rubin_backup
+
+# Logs
+*.log
+*.err.log
+
+# Test artifacts
+selenium-downloads/
+test-results/
+output/
+
+# Old versions (keep only current v8.0)
+nma-pro-v6.2-optimized.html
+nma-pro-v6.3-optimized.html
+nma-pro-v7.0-optimized.html
+nma-pro-v7.0-optimized.fixed.html
+nma-pro-v8.0.backup-*.html
+nma-pro-v8.0.backup_*.html
+nma-pro-v8.0.html.pre_*
