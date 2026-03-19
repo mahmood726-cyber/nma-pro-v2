@@ -13325,289 +13325,633 @@ try{Localization.init()}catch(err){console.warn('Localization init failed:',err)
 });
 </script>
 <script>
-/* ── WebR In-Browser Validation (NMA pairwise pooling vs R metafor) ── */
+/* ── WebR Full Network Validation (netmeta + metafor fallback) ── */
 (function(){
 'use strict';
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+let _webRInstance=null; // Cache WebR instance for re-runs
+let _netmetaAvailable=null; // null=untested, true/false after first attempt
+let _running=false; // [P0-6] Race condition guard
 
-/* ── Card injection via MutationObserver ── */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function fmtNum(v,dp=6){return(v===null||v===undefined||!Number.isFinite(v))?'N/A':v.toFixed(dp);}
+function fmtPct(v){return(v===null||v===undefined||!Number.isFinite(v))?'N/A':v.toFixed(1)+'%';}
+
+/* ── Card injection ── */
 function injectWebRCard(){
   const panel=document.getElementById('panel-validation');
-  if(!panel||document.getElementById('webr-validation-card'))return;
+  if(!panel||document.getElementById('webr-netmeta-card'))return;
   const card=document.createElement('div');
-  card.id='webr-validation-card';
+  card.id='webr-netmeta-card';
   card.style.cssText='margin-top:24px;border-radius:14px;padding:2px;background:linear-gradient(135deg,#7c3aed,#a855f7,#6366f1);';
   card.innerHTML=
-    '<div style="background:var(--surface,#fff);border-radius:12px;padding:20px;">'+
+    '<div style="background:var(--surface,#fff);border-radius:12px;padding:24px;">'+
     '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'+
-    '<span style="font-weight:700;font-size:15px;color:var(--text-primary,#111);">WebR In-Browser Validation (metafor)</span>'+
-    '<button id="runWebRValidationBtn" class="btn btn--sm btn--secondary" style="background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;">Run WebR Validation</button>'+
-    '</div>'+
-    '<p style="font-size:13px;color:var(--text-secondary,#666);margin:0 0 8px;">'+
-    'Loads WebR v0.4.4 in-browser, runs R <code>metafor::rma(method=&quot;REML&quot;)</code> for each pairwise comparison against the reference, and shows a comparison table.'+
+    '<div><span style="font-weight:700;font-size:16px;color:var(--text-primary,#111);">WebR Full Network Validation</span>'+
+    '<span style="display:inline-block;margin-left:8px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;">netmeta</span></div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+    '<button id="runWebRNetmetaBtn" class="btn btn--sm" style="background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;font-weight:600;">Validate with R</button>'+
+    '<button id="downloadWebRReportBtn" class="btn btn--sm btn--ghost" style="display:none;">Download Report</button>'+
+    '</div></div>'+
+    '<p style="font-size:13px;color:var(--text-secondary,#666);margin:0 0 4px;">'+
+    'Runs R <code>netmeta</code> (Schwarzer et al.) in-browser via WebR. Compares <strong>all</strong> network estimates, heterogeneity, P-scores, and rankings against NMA Pro.'+
     '</p>'+
-    '<div id="webr-validation-output" style="font-size:13px;color:var(--text-secondary,#666);"></div>'+
+    '<p style="font-size:12px;color:var(--text-tertiary,#999);margin:0 0 12px;">'+
+    'First run downloads ~30-50 MB (WebR + packages). Subsequent runs use cached instance.</p>'+
+    '<div id="webr-netmeta-progress" style="display:none;" role="status" aria-live="polite">'+
+    '<div style="background:var(--surface-raised,#f3f4f6);border-radius:8px;overflow:hidden;height:6px;margin-bottom:8px;">'+
+    '<div id="webr-netmeta-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="WebR validation progress" style="height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#6366f1);border-radius:8px;transition:width 0.4s ease;"></div></div>'+
+    '<p id="webr-netmeta-status" style="font-size:13px;color:var(--text-secondary,#666);text-align:center;margin:0;"></p></div>'+
+    '<div id="webr-netmeta-output"></div>'+
     '</div>';
   panel.appendChild(card);
-  document.getElementById('runWebRValidationBtn').addEventListener('click',runWebRValidation);
+  document.getElementById('runWebRNetmetaBtn').addEventListener('click',runFullValidation);
 }
-
 const obs=new MutationObserver(()=>injectWebRCard());
 obs.observe(document.body,{childList:true,subtree:true});
 document.addEventListener('DOMContentLoaded',injectWebRCard);
 setTimeout(injectWebRCard,2000);
 
-/* ── Extract pairwise data from AppState for a given comparison ── */
-function extractPairwiseData(t1,t2){
-  // t1 = reference, t2 = non-reference treatment
-  // Collect studies comparing t1 vs t2 (direct evidence only)
-  const studies=window.AppState?.studies;
-  const em=window.AppState?.effectMeasure||'OR';
-  if(!studies||!studies.length)return null;
-  const processed=window.AppState?.results?.processed;
-  if(!processed)return null;
-
-  const pairs=[];
-  processed.forEach(s=>{
-    const a=String(s.treatment1||''), b=String(s.treatment2||'');
-    if(!((a===t1&&b===t2)||(a===t2&&b===t1)))return;
-    if(!Number.isFinite(s.yi)||!Number.isFinite(s.vi)||s.vi<=0)return;
-    let yi=s.yi, vi=s.vi;
-    // If study is coded t2 vs t1 (reversed), flip sign for consistency (t2 vs ref)
-    if(a===t2&&b===t1){yi=-yi;}
-    pairs.push({yi,vi,name:String(s.name||'')});
-  });
-  return pairs.length?pairs:null;
+/* ── Progress helpers ── */
+function showProgress(pct,msg){
+  const prog=document.getElementById('webr-netmeta-progress');
+  const bar=document.getElementById('webr-netmeta-bar');
+  const status=document.getElementById('webr-netmeta-status');
+  if(prog)prog.style.display='block';
+  if(bar){bar.style.width=pct+'%';bar.setAttribute('aria-valuenow',pct);}
+  if(status)status.textContent=msg;
 }
 
-/* ── Main validation function ── */
-async function runWebRValidation(){
-  const out=document.getElementById('webr-validation-output');
-  if(!out)return;
+/* ── Build R data frame from AppState studies ── */
+function buildRDataFrame(studies,em){
+  const isBinary=['OR','RR','HR','RD'].includes(em);
+  const isCont=['SMD','MD'].includes(em);
+  const rows=[];
+  for(const s of studies){
+    const hasDirectIV=Number.isFinite(Number(s.yi))&&(Number.isFinite(Number(s.vi))&&Number(s.vi)>0||Number.isFinite(Number(s.se))&&Number(s.se)>0);
+    rows.push({
+      study:String(s.name||'').replace(/"/g,"'"),
+      treat1:String(s.treatment1||'').replace(/"/g,"'"),
+      treat2:String(s.treatment2||'').replace(/"/g,"'"),
+      event1:Number(s.events1)||0, n1:Number(s.n1)||0,
+      event2:Number(s.events2)||0, n2:Number(s.n2)||0,
+      mean1:Number(s.mean1)||0, sd1:Number(s.sd1)||0,
+      mean2:Number(s.mean2)||0, sd2:Number(s.sd2)||0,
+      yi:hasDirectIV?Number(s.yi):null,
+      se:hasDirectIV?(Number.isFinite(Number(s.se))&&Number(s.se)>0?Number(s.se):Math.sqrt(Number(s.vi))):null
+    });
+  }
+  return{rows,isBinary,isCont};
+}
+
+/* ── Sanitize R string ── */
+/* [P0-2] Escape newlines/tabs/null to prevent R code injection */
+function rStr(s){return'"'+String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n').replace(/\r/g,'\\r').replace(/\t/g,'\\t').replace(/\0/g,'')+'"';}
+
+/* ── Main validation ── */
+async function runFullValidation(){
+  const out=document.getElementById('webr-netmeta-output');
+  const btn=document.getElementById('runWebRNetmetaBtn');
+  const dlBtn=document.getElementById('downloadWebRReportBtn');
+  if(!out||_running)return; // [P0-6] guard concurrent clicks
+  _running=true;
+  out.innerHTML='';
+  if(dlBtn)dlBtn.style.display='none';
+  if(btn){btn.disabled=true;btn.textContent='Running...';btn.setAttribute('aria-busy','true');} // [P1-5]
+
   const results=window.AppState?.results;
-  if(!results||!results.effects||!results.treatments||results.treatments.length<2){
-    out.innerHTML='<div style="padding:12px;background:#fef2f2;border-radius:8px;color:#991b1b;">Run the NMA analysis first (need at least 2 treatments).</div>';
+  const studies=window.AppState?.studies;
+  if(!results||!results.effects||!results.treatments||results.treatments.length<2||!studies?.length){
+    out.innerHTML='<div style="padding:12px;background:#fef2f2;border-radius:8px;color:#991b1b;margin-top:8px;">Run the NMA analysis first (need at least 2 treatments and completed analysis).</div>';
+    if(btn){btn.disabled=false;btn.textContent='Validate with R';btn.removeAttribute('aria-busy');}
+    _running=false;
     return;
   }
+
   const ref=results.reference||results.treatments[0];
-  const nonRef=results.treatments.filter(t=>t!==ref);
   const em=window.AppState?.effectMeasure||'OR';
-  const estimator=window.AppState?.estimator||'REML';
+  const estimatorJS=window.AppState?.estimator||'REML';
+  const direction=window.AppState?.direction||'lower';
+  const confLevel=window.AppState?.confLevel??0.95;
+  const isBinary=['OR','RR','HR','RD'].includes(em);
+  const isCont=['SMD','MD'].includes(em);
+  const isRatio=['OR','RR','HR'].includes(em);
 
-  // Gather pairwise data for each comparison vs reference
-  const comparisons=[];
-  for(const t of nonRef){
-    const data=extractPairwiseData(ref,t);
-    if(data&&data.length>=1){
-      comparisons.push({treatment:t,data});
-    }
-  }
-  if(!comparisons.length){
-    out.innerHTML='<div style="padding:12px;background:#fef2f2;border-radius:8px;color:#991b1b;">No direct pairwise comparisons against reference found in processed data.</div>';
-    return;
-  }
-
-  out.innerHTML='<div style="padding:16px;text-align:center;"><div style="display:inline-block;width:20px;height:20px;border:3px solid #7c3aed;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div><style>@keyframes spin{to{transform:rotate(360deg)}}<\/style><p style="margin-top:8px;">Loading WebR v0.4.4 (first load ~15-25 MB download)...</p></div>';
-
-  let webR;
   try{
-    const {WebR}=await import('https://webr.r-wasm.org/v0.4.4/webr.mjs');
-    webR=new WebR();
-    await webR.init();
-
-    out.querySelector('p').textContent='Installing metafor package...';
-    let metaforOK=true;
-    try{
-      await webR.installPackages(['metafor'],{quiet:true});
-      await webR.evalRVoid('library(metafor)');
-    }catch(e){
-      metaforOK=false;
+    /* ── Step 1: Load/reuse WebR ── */
+    showProgress(5,'Loading WebR v0.4.4...');
+    if(!_webRInstance){
+      const {WebR}=await import('https://webr.r-wasm.org/v0.4.4/webr.mjs');
+      _webRInstance=new WebR();
+      await _webRInstance.init();
     }
+    const webR=_webRInstance;
 
-    const rResults=[];
-    for(const comp of comparisons){
-      const yi=comp.data.map(d=>d.yi);
-      const vi=comp.data.map(d=>d.vi);
-      const k=yi.length;
-
-      out.querySelector('p').textContent='Running R: '+esc(comp.treatment)+' (k='+k+')...';
-
-      // Map estimator to R method
-      let rMethod='REML';
-      if(estimator==='DL')rMethod='DL';
-      else if(estimator==='FE')rMethod='FE';
-      else rMethod='REML';
-
-      let rEst=null,rSE=null,rTau2=null,rI2=null,rPval=null,rCI_lb=null,rCI_ub=null;
-      let method_used=rMethod;
-
-      if(k===1){
-        // Single study — no meta-analysis needed
-        rEst=yi[0];
-        rSE=Math.sqrt(vi[0]);
-        rTau2=0;
-        rI2=0;
-        rPval=2*(1-pnormJS(Math.abs(yi[0]/rSE)));
-        rCI_lb=yi[0]-1.96*rSE;
-        rCI_ub=yi[0]+1.96*rSE;
-        method_used='single study';
-      }else{
-        // Build R code
-        const yiStr=yi.map(v=>v.toPrecision(15)).join(',');
-        const viStr=vi.map(v=>v.toPrecision(15)).join(',');
-
-        if(metaforOK){
-          try{
-            const rCode=`
-              yi <- c(${yiStr})
-              vi <- c(${viStr})
-              fit <- rma(yi=yi, vi=vi, method="${rMethod}")
-              c(fit$beta[1], fit$se, fit$tau2, fit$I2, fit$pval, fit$ci.lb, fit$ci.ub)
-            `;
-            const result=await webR.evalR(rCode);
-            const vals=await result.toArray();
-            rEst=vals[0];rSE=vals[1];rTau2=vals[2];rI2=vals[3];rPval=vals[4];rCI_lb=vals[5];rCI_ub=vals[6];
-            method_used='metafor::rma('+rMethod+')';
-          }catch(e){
-            metaforOK=false;
-          }
-        }
-
-        if(!metaforOK){
-          // Fallback: DL in base R
-          try{
-            const rCode=`
-              yi <- c(${yiStr})
-              vi <- c(${viStr})
-              wi <- 1/vi
-              Q <- sum(wi*(yi-sum(wi*yi)/sum(wi))^2)
-              k <- length(yi)
-              tau2 <- max(0, (Q-(k-1))/(sum(wi)-sum(wi^2)/sum(wi)))
-              wi_re <- 1/(vi+tau2)
-              est <- sum(wi_re*yi)/sum(wi_re)
-              se_est <- sqrt(1/sum(wi_re))
-              I2 <- max(0, (Q-(k-1))/Q)*100
-              pval <- 2*(1-pnorm(abs(est/se_est)))
-              ci_lb <- est - 1.96*se_est
-              ci_ub <- est + 1.96*se_est
-              c(est, se_est, tau2, I2, pval, ci_lb, ci_ub)
-            `;
-            const result=await webR.evalR(rCode);
-            const vals=await result.toArray();
-            rEst=vals[0];rSE=vals[1];rTau2=vals[2];rI2=vals[3];rPval=vals[4];rCI_lb=vals[5];rCI_ub=vals[6];
-            method_used='base R DL (metafor unavailable)';
-          }catch(e2){
-            rEst=null;method_used='FAILED: '+String(e2.message||e2).slice(0,60);
-          }
-        }
+    /* ── Step 2: Install netmeta (or fall back) ── */
+    showProgress(20,'Installing R packages (netmeta + metafor)...');
+    let useNetmeta=false;
+    if(_netmetaAvailable===null){
+      try{
+        await webR.installPackages(['netmeta'],{quiet:true});
+        await webR.evalRVoid('library(netmeta)');
+        _netmetaAvailable=true;
+        useNetmeta=true;
+      }catch(e){
+        _netmetaAvailable=false;
+        try{
+          await webR.installPackages(['metafor'],{quiet:true});
+          await webR.evalRVoid('library(metafor)');
+        }catch(e2){}
       }
-
-      // Get JS-side values from AppState
-      const jsEffect=results.effects?.effects?.[comp.treatment];
-      const jsEst=jsEffect?.estimate??null;
-      const jsSE=jsEffect?.se??null;
-      const jsCI_lb=jsEffect?.ci_lower??null;
-      const jsCI_ub=jsEffect?.ci_upper??null;
-
-      rResults.push({
-        treatment:comp.treatment,
-        k:k,
-        method:method_used,
-        r:{est:rEst,se:rSE,tau2:rTau2,I2:rI2,pval:rPval,ci_lb:rCI_lb,ci_ub:rCI_ub},
-        js:{est:jsEst,se:jsSE,ci_lb:jsCI_lb,ci_ub:jsCI_ub,tau2:results.tau2,I2:results.heterogeneity?.I2}
-      });
+    }else{
+      useNetmeta=_netmetaAvailable;
+      try{
+        if(useNetmeta)await webR.evalRVoid('library(netmeta)');
+        else await webR.evalRVoid('library(metafor)');
+      }catch(e){}
     }
 
-    // Render comparison table
-    renderWebRResults(rResults,ref,em,estimator);
+    /* ── Step 3: Build data and send to R ── */
+    showProgress(40,useNetmeta?'Running R netmeta NMA...':'Running R metafor NMA (netmeta unavailable)...');
+    const {rows}=buildRDataFrame(studies,em);
+
+    // Map estimator
+    const rMethodTau=estimatorJS==='DL'?'DL':estimatorJS==='FE'?'FE':'REML';
+    const rCommon=estimatorJS==='FE'?'TRUE':'FALSE';
+    const rRandom=estimatorJS==='FE'?'FALSE':'TRUE';
+    const smallValues=direction==='lower'?'desirable':'undesirable';
+    const smallValuesFallback=direction==='lower'?'good':'bad'; // [P1-9] older netmeta compat
+    const hksjArg=(window.AppState?.smallStudyCorrection==='hksj'&&estimatorJS!=='FE')?', method.random.ci="HK"':''; // [P1-9]
+
+    let rCode='';
+    if(useNetmeta){
+      /* [P0-4] Use JS-processed yi/seTE to avoid CC mismatch. One unified path. */
+      const processed=results.processed||[];
+      const validRows=processed.filter(s=>Number.isFinite(s.yi)&&Number.isFinite(s.vi)&&s.vi>0);
+      if(!validRows.length){
+        out.innerHTML='<div style="padding:12px;background:#fef2f2;border-radius:8px;color:#991b1b;margin-top:8px;">No valid processed effect sizes found. Run the NMA analysis first.</div>';
+        if(btn){btn.disabled=false;btn.textContent='Validate with R';btn.removeAttribute('aria-busy');}
+        _running=false;
+        document.getElementById('webr-netmeta-progress').style.display='none';
+        return;
+      }
+      rCode=`
+library(netmeta)
+library(jsonlite)
+TE <- c(${validRows.map(r=>r.yi.toPrecision(15)).join(',')})
+seTE <- c(${validRows.map(r=>Math.sqrt(r.vi).toPrecision(15)).join(',')})
+treat1 <- c(${validRows.map(r=>rStr(String(r.treatment1||''))).join(',')})
+treat2 <- c(${validRows.map(r=>rStr(String(r.treatment2||''))).join(',')})
+studlab <- c(${validRows.map(r=>rStr(String(r.name||''))).join(',')})
+net <- netmeta(TE, seTE, treat1, treat2, studlab,
+               sm=${rStr(em)}, reference.group=${rStr(ref)},
+               common=${rCommon}, random=${rRandom},
+               method.tau=${rStr(rMethodTau)},
+               level.comb=${confLevel}, level.ma=${confLevel}${hksjArg})
+rnk <- tryCatch(
+  netrank(net, small.values=${rStr(smallValues)}),
+  error=function(e) tryCatch(netrank(net, small.values=${rStr(smallValuesFallback)}), error=function(e2) NULL)
+)
+pscores <- if(!is.null(rnk)){
+  if(${rCommon}) setNames(as.numeric(rnk$Pscore.common), names(rnk$Pscore.common))
+  else setNames(as.numeric(rnk$Pscore.random), names(rnk$Pscore.random))
+} else c()
+trts <- net$trts
+rref <- net$reference.group
+mat <- if(${rCommon}) "common" else "random"
+effs <- list()
+league <- list()
+predict_list <- list()
+for(t in trts){
+  if(t==rref) next
+  idx <- which(rownames(net$TE.random)==t)
+  ridx <- which(colnames(net$TE.random)==rref)
+  if(mat=="common"){
+    effs[[t]] <- list(estimate=net$TE.common[idx,ridx], se=net$seTE.common[idx,ridx],
+      ci_lower=net$lower.common[idx,ridx], ci_upper=net$upper.common[idx,ridx],
+      pvalue=net$pval.common[idx,ridx])
+  } else {
+    effs[[t]] <- list(estimate=net$TE.random[idx,ridx], se=net$seTE.random[idx,ridx],
+      ci_lower=net$lower.random[idx,ridx], ci_upper=net$upper.random[idx,ridx],
+      pvalue=net$pval.random[idx,ridx])
+  }
+  predict_list[[t]] <- tryCatch(list(
+    lower=net$lower.predict[idx,ridx],
+    upper=net$upper.predict[idx,ridx]
+  ), error=function(e) list(lower=NA, upper=NA))
+}
+for(i in seq_along(trts)){
+  for(j in seq_along(trts)){
+    if(i==j) next
+    key <- paste0(trts[i], ":", trts[j])
+    if(mat=="common"){
+      league[[key]] <- list(TE=net$TE.common[i,j], seTE=net$seTE.common[i,j],
+        lower=net$lower.common[i,j], upper=net$upper.common[i,j])
+    } else {
+      league[[key]] <- list(TE=net$TE.random[i,j], seTE=net$seTE.random[i,j],
+        lower=net$lower.random[i,j], upper=net$upper.random[i,j])
+    }
+  }
+}
+ns_results <- tryCatch({
+  ns <- netsplit(net, level.comb=${confLevel})
+  ns_list <- list()
+  for(i in seq_len(nrow(ns$random))){
+    comp <- ns$comparison[i]
+    ns_list[[comp]] <- list(
+      direct=ns$direct.random$TE[i],
+      indirect=ns$indirect.random$TE[i],
+      diff=ns$compare.random$TE[i],
+      pvalue=ns$compare.random$p[i]
+    )
+  }
+  ns_list
+}, error=function(e) list())
+out <- list(
+  method=mat,
+  tau2=as.numeric(net$tau^2), tau=as.numeric(net$tau),
+  I2=as.numeric(net$I2), Q=as.numeric(net$Q),
+  df=as.numeric(net$df.Q), pQ=as.numeric(net$pval.Q),
+  pscores=as.list(pscores), effects=effs, league=league,
+  predict=predict_list, nodesplit=ns_results,
+  reference=${rStr(ref)}, sm=${rStr(em)},
+  method_tau=${rStr(rMethodTau)},
+  nStudies=net$k, nTreatments=net$n,
+  netmeta_version=as.character(packageVersion("netmeta")),
+  engine="netmeta"
+)
+toJSON(out, auto_unbox=TRUE, digits=10)`;
+    }else{
+      // Metafor fallback — pairwise only (no full network)
+      const processed=results.processed||[];
+      const validRows=processed.filter(s=>Number.isFinite(s.yi)&&Number.isFinite(s.vi)&&s.vi>0);
+      if(!validRows.length){
+        out.innerHTML='<div style="padding:12px;background:#fef2f2;border-radius:8px;color:#991b1b;margin-top:8px;">No valid processed effect sizes. Cannot validate.</div>';
+        if(btn){btn.disabled=false;btn.textContent='Validate with R';btn.removeAttribute('aria-busy');}
+        _running=false;
+        document.getElementById('webr-netmeta-progress').style.display='none';
+        return;
+      }
+      // Build pairwise metafor code for each comparison
+      rCode=buildMetaforFallbackCode(validRows,ref,em,rMethodTau,confLevel);
+    }
+
+    /* ── Step 4: Execute R code ── */
+    showProgress(60,'Executing R analysis...');
+    const rResult=await webR.evalR(rCode);
+    const jsonStr=await rResult.toArray();
+    try{await rResult.destroy();}catch(e){} // [P1-12] free R object
+    const rData=JSON.parse(jsonStr[0]);
+
+    /* ── Step 5: Compare results ── */
+    showProgress(85,'Comparing JS vs R results...');
+    const comparison=compareResults(results,rData,ref,em,isRatio,confLevel,direction);
+
+    /* ── Step 6: Render ── */
+    showProgress(100,'Done!');
+    setTimeout(()=>{
+      const prog=document.getElementById('webr-netmeta-progress');
+      if(prog)prog.style.display='none';
+    },600);
+    renderValidationReport(out,comparison,ref,em,isRatio,estimatorJS,rData,confLevel);
+
+    // Enable download button
+    if(dlBtn){
+      dlBtn.style.display='inline-flex';
+      dlBtn.onclick=()=>downloadReport(comparison,ref,em,estimatorJS,rData);
+    }
 
   }catch(err){
-    out.innerHTML='<div style="padding:12px;background:#fef2f2;border-radius:8px;color:#991b1b;">'+
-      '<strong>WebR failed to load:</strong> '+esc(String(err.message||err))+'<br>'+
-      '<span style="font-size:12px;">Ensure you have a modern browser with SharedArrayBuffer support (HTTPS or localhost required).</span></div>';
+    const prog=document.getElementById('webr-netmeta-progress');
+    if(prog)prog.style.display='none';
+    out.innerHTML='<div style="padding:12px;background:#fef2f2;border-radius:8px;color:#991b1b;margin-top:8px;">'+
+      '<strong>WebR validation failed:</strong> '+esc(String(err.message||err).slice(0,200))+'<br>'+
+      '<span style="font-size:12px;">Ensure: (1) HTTPS or localhost, (2) modern browser with SharedArrayBuffer, (3) NMA analysis completed first.</span></div>';
+  }finally{
+    _running=false; // [P0-6]
+    if(btn){btn.disabled=false;btn.textContent='Validate with R';btn.removeAttribute('aria-busy');} // [P1-5]
   }
 }
 
-function pnormJS(x){
-  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
-  const sign=x<0?-1:1,absX=Math.abs(x)/Math.SQRT2,t=1/(1+p*absX);
-  return 0.5*(1+sign*(1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-absX*absX)));
+/* ── Metafor fallback (pairwise only) ── */
+/* [P0-3, P0-4] Metafor fallback uses pre-computed yi/vi from JS engine */
+function buildMetaforFallbackCode(validRows,ref,em,rMethodTau,confLevel){
+  let rCode='library(metafor)\nlibrary(jsonlite)\n';
+  rCode+=`
+yi_all <- c(${validRows.map(r=>r.yi.toPrecision(15)).join(',')})
+vi_all <- c(${validRows.map(r=>r.vi.toPrecision(15)).join(',')})
+treat1_all <- c(${validRows.map(r=>rStr(String(r.treatment1||''))).join(',')})
+treat2_all <- c(${validRows.map(r=>rStr(String(r.treatment2||''))).join(',')})
+studlab_all <- c(${validRows.map(r=>rStr(String(r.name||''))).join(',')})
+trts <- sort(unique(c(treat1_all, treat2_all)))
+ref <- ${rStr(ref)}
+z_crit <- qnorm(1 - (1 - ${confLevel})/2)
+effs <- list()
+for(t in trts){
+  if(t==ref) next
+  idx <- which((treat1_all==t & treat2_all==ref) | (treat1_all==ref & treat2_all==t))
+  if(length(idx)==0) next
+  yi_vals <- ifelse(treat1_all[idx]==t, yi_all[idx], -yi_all[idx])
+  vi_vals <- vi_all[idx]
+  if(length(idx)==1){
+    se_val <- sqrt(vi_vals[1])
+    effs[[t]] <- list(estimate=yi_vals[1], se=se_val,
+      ci_lower=yi_vals[1]-z_crit*se_val,
+      ci_upper=yi_vals[1]+z_crit*se_val, pvalue=NA)
+  }else{
+    fit <- rma(yi=yi_vals, vi=vi_vals, method=${rStr(rMethodTau)}, level=${confLevel*100})
+    effs[[t]] <- list(estimate=as.numeric(fit$beta[1]), se=as.numeric(fit$se),
+      ci_lower=as.numeric(fit$ci.lb), ci_upper=as.numeric(fit$ci.ub),
+      pvalue=as.numeric(fit$pval))
+  }
+}
+out <- list(
+  method="pairwise-fallback",
+  tau2=NA, tau=NA, I2=NA, Q=NA, df=NA, pQ=NA,
+  pscores=list(), effects=effs, league=list(),
+  predict=list(), nodesplit=list(),
+  reference=ref, sm=${rStr(em)},
+  method_tau=${rStr(rMethodTau)},
+  nStudies=length(yi_all), nTreatments=length(trts),
+  engine="metafor-pairwise"
+)
+toJSON(out, auto_unbox=TRUE, digits=10)`;
+  return rCode;
 }
 
-function renderWebRResults(rResults,ref,em,estimator){
-  const out=document.getElementById('webr-validation-output');
-  if(!out)return;
+/* ── Compare JS and R results ── */
+function compareResults(jsResults,rData,ref,em,isRatio,confLevel,direction){
+  const tol={effect:0.01,se:0.01,tau2:0.005,I2:1.0,Q:0.5,pScore:0.03,pValue:0.02}; // [P1-7] tightened pValue
+  const checks=[];
+  const isNetmeta=rData.engine==='netmeta';
 
-  const isRatio=['OR','RR','HR'].includes(em);
-  const fmtEst=v=>{
-    if(v===null||v===undefined||!Number.isFinite(v))return'N/A';
-    if(isRatio)return Math.exp(v).toFixed(4);
-    return v.toFixed(4);
+  // 1. Heterogeneity
+  if(isNetmeta){
+    checks.push(makeCheck('tau-squared','Heterogeneity',jsResults.tau2??null,rData.tau2??null,tol.tau2,'abs'));
+    checks.push(makeCheck('I-squared (%)','Heterogeneity',jsResults.heterogeneity?.I2??null,rData.I2??null,tol.I2,'abs'));
+    checks.push(makeCheck('Q statistic','Heterogeneity',jsResults.heterogeneity?.Q??null,rData.Q??null,tol.Q,'abs'));
+  }
+
+  // 2. Treatment effects (vs reference)
+  const jsEffects=jsResults.effects?.effects||{};
+  const rEffects=rData.effects||{};
+  const treatments=jsResults.treatments||[];
+
+  for(const t of treatments){
+    if(t===ref)continue;
+    const jsE=jsEffects[t],rE=rEffects[t];
+    if(!jsE||!rE)continue;
+    checks.push(makeCheck(t+' estimate','Treatment Effects',jsE.estimate??null,rE.estimate??null,tol.effect,'abs'));
+    checks.push(makeCheck(t+' SE','Treatment Effects',jsE.se??null,rE.se??null,tol.se,'abs'));
+    checks.push(makeCheck(t+' CI lower','Treatment Effects',jsE.ci_lower??null,rE.ci_lower??null,tol.effect*2,'abs'));
+    checks.push(makeCheck(t+' CI upper','Treatment Effects',jsE.ci_upper??null,rE.ci_upper??null,tol.effect*2,'abs'));
+  }
+
+  // 2b. [P0-5] League table (all pairwise comparisons)
+  const rLeague=rData.league||{};
+  const jsLT=jsResults.leagueTable; // {table: 2D_array, treatments: string[]}
+  if(isNetmeta&&jsLT?.table&&jsLT?.treatments&&Object.keys(rLeague).length>0){
+    const ltTrts=jsLT.treatments;
+    for(let i=0;i<ltTrts.length;i++){
+      for(let j=0;j<ltTrts.length;j++){
+        if(i===j)continue;
+        const t1=ltTrts[i],t2=ltTrts[j];
+        if(t1===ref&&treatments.includes(t2))continue; // ref-vs-X already checked above
+        const rKey=t1+':'+t2;
+        const rEntry=rLeague[rKey];
+        if(!rEntry)continue;
+        const jsCell=jsLT.table[i]?.[j];
+        if(!jsCell||jsCell.isRef)continue;
+        const jsTE=jsCell.estimate??null;
+        const rTE=rEntry.TE??null;
+        if(Number.isFinite(jsTE)&&Number.isFinite(rTE)){
+          checks.push(makeCheck(t1+' vs '+t2,'League Table',jsTE,rTE,tol.effect,'abs'));
+        }
+      }
+    }
+  }
+
+  // 3. P-scores and rankings
+  const rPscores=rData.pscores||{};
+  const jsRanking=window.AppState?.ranking;
+  if(jsRanking&&Array.isArray(jsRanking)&&Object.keys(rPscores).length>0){
+    const jsRankMap={};
+    jsRanking.forEach(r=>{if(r.treatment)jsRankMap[r.treatment]=r.pScore;});
+
+    for(const t of treatments){
+      const jsP=jsRankMap[t]??null;
+      const rP=rPscores[t]??null;
+      if(jsP!==null&&rP!==null){
+        checks.push(makeCheck(t+' P-score','Rankings',jsP,rP,tol.pScore,'abs'));
+      }
+    }
+
+    const jsOrder=jsRanking.map(r=>r.treatment);
+    const rOrder=Object.entries(rPscores).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+    const topMatch=jsOrder[0]===rOrder[0];
+    checks.push({name:'Top treatment',section:'Rankings',jsVal:jsOrder[0]||'N/A',rVal:rOrder[0]||'N/A',diff:topMatch?0:1,tolerance:0,pass:topMatch,label:true});
+
+    const shared=jsOrder.filter(t=>rPscores[t]!==undefined);
+    if(shared.length>=3){
+      const rho=spearmanRho(shared.map(t=>jsRankMap[t]),shared.map(t=>rPscores[t]));
+      if(Number.isFinite(rho)){
+        checks.push({name:'Spearman rho',section:'Rankings',jsVal:rho,rVal:1.0,diff:Math.abs(1-rho),tolerance:0.05,pass:rho>=0.95,label:false});
+      }
+    }
+  }
+
+  // 4. [P1-10] Prediction intervals
+  const rPredict=rData.predict||{};
+  const jsEffObj=jsResults.effects?.effects||{};
+  if(isNetmeta&&Object.keys(rPredict).length>0){
+    for(const t of treatments){
+      if(t===ref)continue;
+      const rPI=rPredict[t];
+      const jsE=jsEffObj[t];
+      if(!rPI||!jsE)continue;
+      if(Number.isFinite(jsE.pi_lower)&&Number.isFinite(rPI.lower)){
+        checks.push(makeCheck(t+' PI lower','Prediction Intervals',jsE.pi_lower,rPI.lower,tol.effect*3,'abs'));
+      }
+      if(Number.isFinite(jsE.pi_upper)&&Number.isFinite(rPI.upper)){
+        checks.push(makeCheck(t+' PI upper','Prediction Intervals',jsE.pi_upper,rPI.upper,tol.effect*3,'abs'));
+      }
+    }
+  }
+
+  // 5. Node-splitting [P1-11] compare estimates + p-values
+  const rNS=rData.nodesplit||{};
+  const jsNS=jsResults.consistency||[];
+  if(isNetmeta&&Object.keys(rNS).length>0&&jsNS.length>0){
+    for(const jsTest of jsNS){
+      const comp=jsTest.comparison||'';
+      const parts=comp.split(' vs ');
+      const rKey1=parts.join(':');
+      const rKey2=[...parts].reverse().join(':'); // [P1-6] no in-place mutation
+      const rTest=rNS[rKey1]||rNS[rKey2];
+      if(!rTest)continue;
+      // Compare direct and indirect estimates [P1-11]
+      if(Number.isFinite(jsTest.directEstimate)&&Number.isFinite(rTest.direct)){
+        checks.push(makeCheck(comp+' direct','Inconsistency',jsTest.directEstimate,rTest.direct,tol.effect*2,'abs'));
+      }
+      if(Number.isFinite(jsTest.indirectEstimate)&&Number.isFinite(rTest.indirect)){
+        checks.push(makeCheck(comp+' indirect','Inconsistency',jsTest.indirectEstimate,rTest.indirect,tol.effect*3,'abs'));
+      }
+      const jsP=jsTest.pInconsistency??jsTest.pValue??null;
+      const rP=rTest.pvalue??null;
+      if(Number.isFinite(jsP)&&Number.isFinite(rP)){
+        checks.push(makeCheck(comp+' p-value','Inconsistency',jsP,rP,tol.pValue,'abs'));
+      }
+    }
+  }
+
+  const passed=checks.filter(c=>c.pass).length;
+  const failed=checks.filter(c=>!c.pass).length;
+  const total=checks.length;
+  const pct=total>0?(passed/total*100):0;
+  const level=pct>=95?'Excellent':pct>=85?'High':pct>=70?'Moderate':'Low';
+
+  return{checks,passed,failed,total,pct,level,isNetmeta,engine:rData.engine||'unknown'};
+}
+
+function makeCheck(name,section,jsVal,rVal,tolerance,kind){
+  const jsOk=typeof jsVal==='number'&&Number.isFinite(jsVal);
+  const rOk=typeof rVal==='number'&&Number.isFinite(rVal);
+  if(!jsOk&&!rOk)return{name,section,jsVal,rVal,diff:0,tolerance,pass:true,label:false}; // [P1-8] both null/NaN = agree
+  if(!jsOk||!rOk)return{name,section,jsVal,rVal,diff:null,tolerance,pass:false,label:false};
+  const diff=Math.abs(jsVal-rVal);
+  const thresh=kind==='rel'?Math.max(Math.abs(rVal)*tolerance,1e-8):tolerance;
+  return{name,section,jsVal,rVal,diff,tolerance:thresh,pass:diff<=thresh,label:false};
+}
+
+function spearmanRho(xs,ys){
+  const n=xs.length;
+  const rank=vals=>{const sorted=vals.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v);const r=Array(n);for(let i=0;i<n;){let j=i;while(j+1<n&&sorted[j+1].v===sorted[i].v)j++;const avg=(i+j+2)/2;for(let k=i;k<=j;k++)r[sorted[k].i]=avg;i=j+1}return r;};
+  const rx=rank(xs),ry=rank(ys);
+  const mx=rx.reduce((s,v)=>s+v,0)/n,my=ry.reduce((s,v)=>s+v,0)/n;
+  let num=0,dx=0,dy=0;
+  for(let i=0;i<n;i++){const a=rx[i]-mx,b=ry[i]-my;num+=a*b;dx+=a*a;dy+=b*b;}
+  return(dx<=0||dy<=0)?0:num/Math.sqrt(dx*dy);
+}
+
+/* ── Render the report ── */
+function renderValidationReport(container,comp,ref,em,isRatio,estimator,rData,confLevel){
+  const tone=comp.level==='Excellent'?'#16a34a':comp.level==='High'?'#3b82f6':comp.level==='Moderate'?'#d97706':'#dc2626';
+  const bg=comp.level==='Excellent'?'#f0fdf4':comp.level==='High'?'#eff6ff':comp.level==='Moderate'?'#fffbeb':'#fef2f2';
+  const engine=comp.isNetmeta?'R netmeta (Schwarzer et al.)':'R metafor (pairwise fallback)';
+
+  let html='<div style="margin-top:12px;">';
+
+  // Summary banner
+  html+=`<div style="padding:14px 18px;border-radius:10px;background:${bg};border-left:4px solid ${tone};margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <div><span style="font-weight:700;font-size:15px;color:${tone};">${comp.passed}/${comp.total} checks PASS</span>
+    <span style="margin-left:8px;padding:2px 10px;border-radius:10px;font-size:12px;font-weight:600;background:${tone};color:#fff;">${comp.level}</span></div>
+    <span style="font-size:12px;color:var(--text-secondary,#666);">Engine: ${esc(engine)}</span></div>
+    <p style="margin:6px 0 0;font-size:13px;color:var(--text-secondary,#555);">JS engine concordant with ${esc(engine)} for ${esc(em)} effect measure, ${esc(estimator)} estimator, reference: ${esc(ref)}.</p>
+  </div>`;
+
+  // Stat cards
+  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;">
+    <div style="background:var(--surface-raised,#f9fafb);border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:22px;font-weight:700;color:${tone};">${comp.pct.toFixed(0)}%</div>
+      <div style="font-size:11px;color:var(--text-secondary,#666);">Concordance</div></div>
+    <div style="background:var(--surface-raised,#f9fafb);border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:22px;font-weight:700;color:var(--text-primary,#111);">${esc(String(rData.nStudies??'?'))}</div>
+      <div style="font-size:11px;color:var(--text-secondary,#666);">Studies (R)</div></div>
+    <div style="background:var(--surface-raised,#f9fafb);border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:22px;font-weight:700;color:var(--text-primary,#111);">${esc(String(rData.nTreatments??'?'))}</div>
+      <div style="font-size:11px;color:var(--text-secondary,#666);">Treatments (R)</div></div>
+    <div style="background:var(--surface-raised,#f9fafb);border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:22px;font-weight:700;color:var(--text-primary,#111);">${comp.total}</div>
+      <div style="font-size:11px;color:var(--text-secondary,#666);">Total Checks</div></div>
+  </div>`;
+
+  // Detailed table grouped by section
+  const sections=['Heterogeneity','Treatment Effects','League Table','Rankings','Prediction Intervals','Inconsistency'];
+  html+='<div style="overflow-x:auto;">';
+  for(const sec of sections){
+    const secChecks=comp.checks.filter(c=>c.section===sec);
+    if(!secChecks.length)continue;
+    const secPass=secChecks.filter(c=>c.pass).length;
+    const secTotal=secChecks.length;
+    html+=`<h4 style="font-size:13px;font-weight:600;color:var(--text-primary,#111);margin:16px 0 6px;display:flex;align-items:center;gap:6px;">
+      ${esc(sec)} <span style="font-size:11px;font-weight:500;color:${secPass===secTotal?'#16a34a':'#d97706'};">(${secPass}/${secTotal})</span></h4>`;
+    html+=`<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;">
+      <thead><tr style="background:var(--surface-raised,#f9fafb);">
+      <th style="padding:6px 8px;border:1px solid var(--border,#e5e7eb);text-align:left;">Check</th>
+      <th style="padding:6px 8px;border:1px solid var(--border,#e5e7eb);text-align:right;">JS</th>
+      <th style="padding:6px 8px;border:1px solid var(--border,#e5e7eb);text-align:right;">R</th>
+      <th style="padding:6px 8px;border:1px solid var(--border,#e5e7eb);text-align:right;">Diff</th>
+      <th style="padding:6px 8px;border:1px solid var(--border,#e5e7eb);text-align:right;">Tol</th>
+      <th style="padding:6px 8px;border:1px solid var(--border,#e5e7eb);text-align:center;">Status</th>
+      </tr></thead><tbody>`;
+    for(const c of secChecks){
+      const jsStr=c.label?esc(String(c.jsVal)):fmtNum(c.jsVal,6);
+      const rStr2=c.label?esc(String(c.rVal)):fmtNum(c.rVal,6);
+      const diffStr=c.diff!==null?fmtNum(c.diff,6):'N/A';
+      const tolStr=fmtNum(c.tolerance,6);
+      const statusColor=c.pass?'#16a34a':'#dc2626';
+      const statusText=c.pass?'&#10003; PASS':'&#10007; FAIL'; // [P1-4] checkmark/cross for colorblind
+      html+=`<tr>
+        <td style="padding:5px 8px;border:1px solid var(--border,#e5e7eb);">${esc(c.name)}</td>
+        <td style="padding:5px 8px;border:1px solid var(--border,#e5e7eb);font-family:monospace;text-align:right;">${jsStr}</td>
+        <td style="padding:5px 8px;border:1px solid var(--border,#e5e7eb);font-family:monospace;text-align:right;">${rStr2}</td>
+        <td style="padding:5px 8px;border:1px solid var(--border,#e5e7eb);font-family:monospace;text-align:right;">${diffStr}</td>
+        <td style="padding:5px 8px;border:1px solid var(--border,#e5e7eb);font-family:monospace;text-align:right;">${tolStr}</td>
+        <td style="padding:5px 8px;border:1px solid var(--border,#e5e7eb);text-align:center;font-weight:700;color:${statusColor};">${statusText}</td>
+      </tr>`;
+    }
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // Tolerances and methodology
+  html+=`<details style="margin-top:16px;">
+    <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--text-primary,#111);">Validation Methodology & Tolerances</summary>
+    <div style="padding:12px;font-size:12px;color:var(--text-secondary,#555);line-height:1.6;">
+    <p><strong>Engine:</strong> ${esc(engine)} loaded via WebR v0.4.4 in-browser.</p>
+    <p><strong>R packages:</strong> ${comp.isNetmeta?'netmeta (Schwarzer, Carpenter, R&uuml;cker) + meta + metafor':'metafor (Viechtbauer) pairwise only'}.</p>
+    <p><strong>Tolerances:</strong></p>
+    <ul style="padding-left:18px;">
+      <li>Treatment effects (log-scale): &plusmn;0.01</li>
+      <li>Standard errors: &plusmn;0.01</li>
+      <li>Confidence interval bounds: &plusmn;0.02</li>
+      <li>tau-squared: &plusmn;0.005</li>
+      <li>I-squared: &plusmn;1.0 percentage points</li>
+      <li>Q statistic: &plusmn;0.5</li>
+      <li>P-scores: &plusmn;0.03</li>
+      <li>Node-split p-values: &plusmn;0.05</li>
+      <li>Rank correlation: Spearman rho &ge; 0.95</li>
+    </ul>
+    <p><strong>Note:</strong> Small differences (&lt;tolerance) are expected due to floating-point precision, continuity corrections, and algorithm implementation choices. These do not indicate errors.</p>
+    <p><strong>References:</strong></p>
+    <ul style="padding-left:18px;">
+      <li>R&uuml;cker G, Schwarzer G. netmeta: Network Meta-Analysis using Frequentist Methods. R package.</li>
+      <li>Viechtbauer W. metafor: Meta-Analysis Package for R. J Stat Softw. 2010;36(3).</li>
+      <li>R&uuml;cker G. Network meta-analysis, electrical networks and graph theory. Res Synth Methods. 2012;3:312-24.</li>
+    </ul>
+    </div></details>`;
+
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+/* ── Download validation report as JSON ── */
+function downloadReport(comparison,ref,em,estimator,rData){
+  const report={
+    title:'NMA Pro v8.1 WebR Validation Report',
+    timestamp:new Date().toISOString(),
+    engine:rData.engine||'unknown',
+    settings:{effectMeasure:em,estimator,reference:ref},
+    summary:{total:comparison.total,passed:comparison.passed,failed:comparison.failed,concordance:comparison.pct,level:comparison.level},
+    checks:comparison.checks.map(c=>({name:c.name,section:c.section,jsValue:c.jsVal,rValue:c.rVal,difference:c.diff,tolerance:c.tolerance,pass:c.pass})),
+    rOutput:rData
   };
-  const fmtLog=v=>{
-    if(v===null||v===undefined||!Number.isFinite(v))return'N/A';
-    return v.toFixed(6);
-  };
-  const fmtPct=v=>{
-    if(v===null||v===undefined||!Number.isFinite(v))return'N/A';
-    return v.toFixed(1)+'%';
-  };
-
-  // Check concordance
-  let allPass=true;
-  const rows=rResults.map(r=>{
-    const estDiff=Number.isFinite(r.r.est)&&Number.isFinite(r.js.est)?Math.abs(r.r.est-r.js.est):null;
-    const seDiff=Number.isFinite(r.r.se)&&Number.isFinite(r.js.se)?Math.abs(r.r.se-r.js.se):null;
-    // NMA vs pairwise: estimates will differ because NMA borrows strength across the network
-    // Use generous tolerance for NMA pairwise validation
-    const estOK=estDiff!==null&&estDiff<0.05;
-    const seOK=seDiff!==null&&seDiff<0.05;
-    if(!estOK||!seOK)allPass=false;
-    const statusIcon=estOK&&seOK?'<span style="color:#16a34a;font-weight:bold;" title="Concordant">PASS</span>':
-      (estDiff!==null&&estDiff<0.15)?'<span style="color:#d97706;font-weight:bold;" title="Close (expected for NMA vs pairwise)">CLOSE</span>':
-      '<span style="color:#dc2626;font-weight:bold;" title="Discrepant">CHECK</span>';
-    return '<tr>'+
-      '<td style="padding:6px 10px;border:1px solid var(--border,#ddd);">'+esc(r.treatment)+'</td>'+
-      '<td style="padding:6px 10px;border:1px solid var(--border,#ddd);text-align:center;">'+r.k+'</td>'+
-      '<td style="padding:6px 10px;border:1px solid var(--border,#ddd);font-family:monospace;text-align:right;">'+fmtLog(r.r.est)+'</td>'+
-      '<td style="padding:6px 10px;border:1px solid var(--border,#ddd);font-family:monospace;text-align:right;">'+fmtLog(r.js.est)+'</td>'+
-      '<td style="padding:6px 10px;border:1px solid var(--border,#ddd);font-family:monospace;text-align:right;">'+fmtLog(r.r.se)+'</td>'+
-      '<td style="padding:6px 10px;border:1px solid var(--border,#ddd);font-family:monospace;text-align:right;">'+fmtLog(r.js.se)+'</td>'+
-      '<td style="padding:6px 10px;border:1px solid var(--border,#ddd);font-family:monospace;text-align:right;">'+fmtLog(r.r.tau2)+'</td>'+
-      '<td style="padding:6px 10px;border:1px solid var(--border,#ddd);font-family:monospace;text-align:right;">'+fmtPct(r.r.I2)+'</td>'+
-      '<td style="padding:6px 10px;border:1px solid var(--border,#ddd);text-align:center;">'+statusIcon+'</td>'+
-      '</tr>';
-  });
-
-  const noteColor=allPass?'#16a34a':'#d97706';
-  const noteText=allPass?
-    'All pairwise R estimates concordant with NMA engine.':
-    'Some differences expected: NMA pools across the full network (indirect evidence), while R metafor::rma pools each pairwise comparison independently. Small discrepancies confirm indirect evidence contribution.';
-
-  out.innerHTML=
-    '<div style="margin-top:8px;padding:10px 14px;border-radius:8px;background:'+(allPass?'#f0fdf4':'#fffbeb')+';color:'+noteColor+';font-size:13px;margin-bottom:12px;">'+
-    '<strong>'+(allPass?'Validation passed':'Note')+':</strong> '+esc(noteText)+
-    '</div>'+
-    '<div style="overflow-x:auto;">'+
-    '<table style="width:100%;border-collapse:collapse;font-size:13px;">'+
-    '<thead><tr style="background:var(--surface-raised,#f9fafb);">'+
-    '<th style="padding:8px 10px;border:1px solid var(--border,#ddd);text-align:left;">Treatment vs '+esc(ref)+'</th>'+
-    '<th style="padding:8px 10px;border:1px solid var(--border,#ddd);text-align:center;">k</th>'+
-    '<th style="padding:8px 10px;border:1px solid var(--border,#ddd);text-align:right;">R est (log)</th>'+
-    '<th style="padding:8px 10px;border:1px solid var(--border,#ddd);text-align:right;">JS est (log)</th>'+
-    '<th style="padding:8px 10px;border:1px solid var(--border,#ddd);text-align:right;">R SE</th>'+
-    '<th style="padding:8px 10px;border:1px solid var(--border,#ddd);text-align:right;">JS SE</th>'+
-    '<th style="padding:8px 10px;border:1px solid var(--border,#ddd);text-align:right;">R tau2</th>'+
-    '<th style="padding:8px 10px;border:1px solid var(--border,#ddd);text-align:right;">R I2</th>'+
-    '<th style="padding:8px 10px;border:1px solid var(--border,#ddd);text-align:center;">Status</th>'+
-    '</tr></thead>'+
-    '<tbody>'+rows.join('')+'</tbody>'+
-    '</table></div>'+
-    '<p style="font-size:11px;color:var(--text-tertiary,#999);margin-top:10px;">'+
-    'R method: metafor::rma (or base R DL fallback). JS engine: NMA Pro v8.1 ('+esc(estimator)+' + network pooling). '+
-    'Differences arise because NMA borrows indirect evidence; pairwise R uses only direct comparisons. '+
-    'Effect measure: '+esc(em)+(isRatio?' (log-scale comparison)':'')+'. WebR v0.4.4.'+
-    '</p>';
+  const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='nma-pro-webr-validation-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 })();

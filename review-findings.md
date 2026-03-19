@@ -1,4 +1,98 @@
-## REVIEW CLEAN — ALL P0+P1 fixed (Rounds 1-6)
+## REVIEW CLEAN — ALL P0+P1 fixed (Round 7)
+## Multi-Persona Review: WebR netmeta Validation (Round 7)
+### Date: 2026-03-19
+### Scope: WebR full network validation feature (~810 lines, lines 13327-14137)
+### Personas: Statistical Methodologist, Security Auditor, UX/Accessibility, Software Engineer, Domain Expert
+### Summary: 6 P0, 12 P1, 10 P2 — **ALL P0+P1 FIXED** (Round 8 verification: 1 regression fixed)
+
+---
+
+### False Positive Watch
+- R code IS valid inside JS template literals (backtick strings with ${} interpolation)
+- `||0` for events/counts is technically safe (0||0===0) but style violation per rules
+
+---
+
+#### P0 — Critical
+
+- **R7-P0-1** [FIXED] [Stat+Domain+SWE] netmeta() missing level.comb/level.ma — CIs wrong for non-95% confLevel (lines 13495+ all 4 calls)
+  - JS uses getCritVal(confLevel), R defaults to 0.95. Produces spurious FAIL/PASS for CI checks.
+  - Fix: Add `level.comb=${confLevel}, level.ma=${confLevel}` to every netmeta() call
+
+- **R7-P0-2** [FIXED] [Security] rStr() doesn't escape \n/\r — R code injection via study/treatment names (line 13406)
+  - Newlines break out of R "..." strings. Even in WASM sandbox, can fabricate validation JSON output.
+  - Fix: Add `.replace(/\n/g,'\\n').replace(/\r/g,'\\r').replace(/\t/g,'\\t').replace(/\0/g,'')` to rStr()
+
+- **R7-P0-3** [FIXED] [Stat+SWE] Hardcoded 1.96 in metafor fallback single-study CI (line 13860)
+  - Uses z=1.96 regardless of confLevel. Known anti-pattern per project rules.
+  - Fix: Use `qnorm(1 - (1 - ${confLevel})/2)` in R code template
+
+- **R7-P0-4** [FIXED] [Domain] Zero-event continuity correction mismatch (lines 13556-13574 vs JS 409-416)
+  - JS uses configurable CC (Haldane/TACC/Sweeting/etc), R pairwise() defaults to Haldane 0.5
+  - Fix: For binary path, pass pre-computed yi/seTE from JS rather than raw counts to pairwise()
+
+- **R7-P0-5** [FIXED] [Domain] Only ref-vs-all effects compared — full league table never validated (lines 13503-13521, 13912)
+  - NMA produces all pairwise estimates; only k-1 against reference are checked. F1000 critical gap.
+  - Fix: Extract full net$TE.random matrix, compare against JS leagueTable
+
+- **R7-P0-6** [FIXED] [SWE] No race condition guard — concurrent clicks corrupt R session (line 13409)
+  - btn.disabled=true can miss fast double-clicks. Two evalR() calls interleave.
+  - Fix: Add `let _running=false` guard checked at top of runFullValidation()
+
+#### P1 — Important
+
+- **R7-P1-1** [FIXED] [Security] XSS: `em` unescaped in innerHTML (line 14028)
+  - Fix: Change `${em}` to `${esc(em)}`
+
+- **R7-P1-2** [FIXED] [Security] XSS: rData.nStudies/nTreatments unescaped (lines 14037, 14040)
+  - Fix: Wrap in `esc(String(...))`
+
+- **R7-P1-3** [FIXED] [UX] Progress bar has no ARIA attributes (lines 13359-13362)
+  - Fix: Add role="progressbar", aria-valuenow, aria-valuemin, aria-valuemax
+
+- **R7-P1-4** [FIXED] [UX] PASS/FAIL relies solely on color — colorblind inaccessible (lines 14071-14072)
+  - Fix: Add checkmark/cross prefix to PASS/FAIL text
+
+- **R7-P1-5** [FIXED] [UX] Button "Running..." has no aria-busy (line 13416)
+  - Fix: Set aria-busy="true" when starting, clear in finally block
+
+- **R7-P1-6** [FIXED] [Stat] Array.reverse() mutates parts in place (lines 13974-13975)
+  - Fix: Use `[...parts].reverse().join(':')`
+
+- **R7-P1-7** [FIXED] [Stat+Domain] Node-split p-value tolerance 0.05 too loose (line 13888)
+  - Fix: Change pValue tolerance to 0.02
+
+- **R7-P1-8** [FIXED] [Stat] makeCheck returns FAIL when both values are null (line 13998)
+  - Fix: Add both-null check returning pass:true
+
+- **R7-P1-9** [FIXED] [Domain] HKSJ correction not synchronized with R (line 13474)
+  - Fix: Pass method.random.ci="HK" when AppState.smallStudyCorrection==='hksj'
+
+- **R7-P1-10** [FIXED] [Domain] Prediction intervals never compared
+  - Fix: Extract net$lower.predict/net$upper.predict, add PI section to comparison
+
+- **R7-P1-11** [FIXED] [Domain] Netsplit: only p-values compared, not direct/indirect estimates (lines 13966-13984)
+  - Fix: Compare rTest.direct vs jsTest.directEstimate, rTest.indirect vs jsTest.indirectEstimate
+
+- **R7-P1-12** [FIXED] [SWE] R object from evalR() never freed — memory leak (line 13797)
+  - Fix: Add `await rResult.destroy()` after extracting jsonStr
+
+#### P2 — Minor
+
+- **R7-P2-1** [SWE] R code duplication (4 nearly identical blocks ~240 lines)
+- **R7-P2-2** [SWE] MutationObserver never disconnected
+- **R7-P2-3** [SWE] _netmetaAvailable cache permanent even for transient errors
+- **R7-P2-4** [Domain] netmeta version not captured in output
+- **R7-P2-5** [Domain] Concordance labels too generous (85%="High")
+- **R7-P2-6** [UX] Download size warning low contrast (#999)
+- **R7-P2-7** [UX] Error message assumes technical knowledge
+- **R7-P2-8** [SWE] Dead confLevel param in compareResults
+- **R7-P2-9** [SWE] esc() duplicated instead of reusing Security.escapeHtml
+- **R7-P2-10** [SWE] ||0 pattern instead of ??0 for numeric fallbacks
+
+---
+
+## Prior Reviews (Rounds 1-6) — REVIEW CLEAN
 ## Multi-Persona Review: nma-pro-v8.0.html — Tier-1 Features (Round 6)
 ### Date: 2026-03-18
 ### Scope: 8 new features (~1,900 lines added, file now 13,417 lines)
