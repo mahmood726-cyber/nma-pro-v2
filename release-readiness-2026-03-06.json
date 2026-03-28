@@ -1,0 +1,1758 @@
+{
+  "format": "nma-pro-release-readiness",
+  "version": "8.1.0",
+  "generatedAt": "2026-03-06T10:54:01.335Z",
+  "publishGates": {
+    "generatedAt": "2026-03-06T10:54:01.334Z",
+    "overall": "PASS",
+    "requiredFails": 0,
+    "gates": [
+      {
+        "name": "Main analysis available",
+        "pass": true,
+        "detail": "Treatments: 6",
+        "severity": "required"
+      },
+      {
+        "name": "Adapter fixture conformance",
+        "pass": true,
+        "detail": "Fixtures pass: 20/20; checks fail: 0",
+        "severity": "required"
+      },
+      {
+        "name": "External concordance >= 85%",
+        "pass": true,
+        "detail": "Concordance 93.3% (14/15)",
+        "severity": "required"
+      },
+      {
+        "name": "Golden regression (fail<=0, concordance>=95%)",
+        "pass": true,
+        "detail": "Fail 0, concordance 100.0%",
+        "severity": "required"
+      },
+      {
+        "name": "R parity map gaps <= 2",
+        "pass": true,
+        "detail": "Gaps 2, aligned 5, near 0",
+        "severity": "required"
+      },
+      {
+        "name": "Parity matrix verified rows >= 4",
+        "pass": true,
+        "detail": "Verified 5/10",
+        "severity": "required"
+      },
+      {
+        "name": "Bayesian diagnostics gate",
+        "pass": false,
+        "detail": "Converged=No, max split R^=0.000, min ESS=0",
+        "severity": "optional"
+      }
+    ],
+    "adapterReport": {
+      "generatedAt": "2026-03-06T10:54:01.333Z",
+      "nFixtures": 20,
+      "passedFixtures": 20,
+      "failedFixtures": 0,
+      "checkPass": 102,
+      "checkFail": 0,
+      "totalChecks": 102,
+      "checkConcordance": 100,
+      "fixtureConcordance": 100,
+      "elapsedMs": 4.4,
+      "rows": [
+        {
+          "id": "netmeta_basic",
+          "adapter": "netmeta",
+          "passed": 4,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=netmeta"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "netmeta_rows",
+          "adapter": "netmeta",
+          "passed": 4,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=netmeta"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "gemtc_basic",
+          "adapter": "gemtc",
+          "passed": 6,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=gemtc"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Metadata gemtc_top",
+              "ok": true,
+              "detail": "gemtc_top=A"
+            },
+            {
+              "name": "Parity metric bayes_dic",
+              "ok": true,
+              "detail": "bayes_dic=120.4"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "gemtc_nested",
+          "adapter": "gemtc",
+          "passed": 6,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=gemtc"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=B"
+            },
+            {
+              "name": "Metadata gemtc_top",
+              "ok": true,
+              "detail": "gemtc_top=B"
+            },
+            {
+              "name": "Parity metric bayes_dic",
+              "ok": true,
+              "detail": "bayes_dic=141.1"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "multinma_basic",
+          "adapter": "multinma",
+          "passed": 6,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=multinma"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=B"
+            },
+            {
+              "name": "Metadata multinma_top",
+              "ok": true,
+              "detail": "multinma_top=B"
+            },
+            {
+              "name": "Parity metric bayes_dic",
+              "ok": true,
+              "detail": "bayes_dic=111.2"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "multinma_rows",
+          "adapter": "multinma",
+          "passed": 5,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=multinma"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=B"
+            },
+            {
+              "name": "Metadata multinma_top",
+              "ok": true,
+              "detail": "multinma_top=B"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "bugsnet_basic",
+          "adapter": "bugsnet",
+          "passed": 6,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=bugsnet"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=C"
+            },
+            {
+              "name": "Metadata bugsnet_top",
+              "ok": true,
+              "detail": "bugsnet_top=C"
+            },
+            {
+              "name": "Parity metric bayes_dic",
+              "ok": true,
+              "detail": "bayes_dic=130.5"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "bugsnet_nested",
+          "adapter": "bugsnet",
+          "passed": 5,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=bugsnet"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=C"
+            },
+            {
+              "name": "Metadata bugsnet_top",
+              "ok": true,
+              "detail": "bugsnet_top=C"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "crossnma_basic",
+          "adapter": "crossnma",
+          "passed": 5,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=crossnma"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Metadata crossnma_top",
+              "ok": true,
+              "detail": "crossnma_top=A"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "crossnma_alt",
+          "adapter": "crossnma",
+          "passed": 5,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=crossnma"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=B"
+            },
+            {
+              "name": "Metadata crossnma_top",
+              "ok": true,
+              "detail": "crossnma_top=B"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "mtrank_basic",
+          "adapter": "mtrank",
+          "passed": 6,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=mtrank"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Cluster count extraction",
+              "ok": true,
+              "detail": "clusters=3"
+            },
+            {
+              "name": "Parity cluster metric",
+              "ok": true,
+              "detail": "parity=3"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "mtrank_alt",
+          "adapter": "mtrank",
+          "passed": 6,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=mtrank"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Cluster count extraction",
+              "ok": true,
+              "detail": "clusters=2"
+            },
+            {
+              "name": "Parity cluster metric",
+              "ok": true,
+              "detail": "parity=2"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "midrank_basic",
+          "adapter": "mid_nma_rank",
+          "passed": 5,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=mid_nma_rank"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=B"
+            },
+            {
+              "name": "Metadata mid_rank_best",
+              "ok": true,
+              "detail": "mid_rank_best=B"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "midrank_alt",
+          "adapter": "mid_nma_rank",
+          "passed": 5,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=mid_nma_rank"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Metadata mid_rank_best",
+              "ok": true,
+              "detail": "mid_rank_best=A"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "nmaoutlier_basic",
+          "adapter": "nmaoutlier",
+          "passed": 6,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=nmaoutlier"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Outlier count extraction",
+              "ok": true,
+              "detail": "outliers=2"
+            },
+            {
+              "name": "Parity outlier metric",
+              "ok": true,
+              "detail": "parity=2"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "nmaoutlier_alt",
+          "adapter": "nmaoutlier",
+          "passed": 6,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=nmaoutlier"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=B"
+            },
+            {
+              "name": "Outlier count extraction",
+              "ok": true,
+              "detail": "outliers=1"
+            },
+            {
+              "name": "Parity outlier metric",
+              "ok": true,
+              "detail": "parity=1"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "metainsight_basic",
+          "adapter": "metainsight",
+          "passed": 4,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=metainsight"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "metainsight_rows",
+          "adapter": "metainsight",
+          "passed": 4,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=metainsight"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "generic_basic",
+          "adapter": "generic",
+          "passed": 4,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=generic"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        },
+        {
+          "id": "generic_nested",
+          "adapter": "generic",
+          "passed": 4,
+          "failed": 0,
+          "status": "PASS",
+          "checks": [
+            {
+              "name": "Adapter detection",
+              "ok": true,
+              "detail": "detected=generic"
+            },
+            {
+              "name": "P-score extraction",
+              "ok": true,
+              "detail": "count=3"
+            },
+            {
+              "name": "Top treatment extraction",
+              "ok": true,
+              "detail": "top=A"
+            },
+            {
+              "name": "Extended tolerance map",
+              "ok": true,
+              "detail": "expects extended parity tolerance keys"
+            }
+          ]
+        }
+      ]
+    },
+    "goldenSummary": {
+      "applicable": true,
+      "nSnapshots": 1,
+      "rows": [
+        {
+          "snapshotId": "snap_1772794441327_84980",
+          "label": "Release readiness baseline",
+          "analysisFingerprint": "89ca94ad",
+          "createdAt": "2026-03-06T10:54:01.327Z",
+          "total": 6,
+          "passed": 6,
+          "failed": 0,
+          "concordance": 100,
+          "fingerprintMatch": false,
+          "tests": [
+            {
+              "key": "core_top",
+              "baseline": "TNK",
+              "current": "TNK",
+              "diff": 0,
+              "tolerance": 0,
+              "pass": true
+            },
+            {
+              "key": "core_tau2",
+              "baseline": 0.09757741222767105,
+              "current": 0.09757741222767105,
+              "diff": 0,
+              "tolerance": 0.05,
+              "pass": true
+            },
+            {
+              "key": "core_i2",
+              "baseline": 73.78609961383292,
+              "current": 73.78609961383292,
+              "diff": 0,
+              "tolerance": 1,
+              "pass": true
+            },
+            {
+              "key": "bayes_top",
+              "baseline": "Abb",
+              "current": "Abb",
+              "diff": 0,
+              "tolerance": 0,
+              "pass": true
+            },
+            {
+              "key": "bayes_max_split_rhat",
+              "baseline": 0,
+              "current": 0,
+              "diff": 0,
+              "tolerance": 0.05,
+              "pass": true
+            },
+            {
+              "key": "bayes_min_ess",
+              "baseline": 0,
+              "current": 0,
+              "diff": 0,
+              "tolerance": 100,
+              "pass": true
+            }
+          ]
+        }
+      ],
+      "total": 6,
+      "allPass": 6,
+      "allFail": 0,
+      "concordance": 100
+    },
+    "externalSummary": {
+      "source": "release-readiness-export",
+      "concordance": 93.33333333333333,
+      "passed": 14,
+      "failed": 1,
+      "total": 15
+    },
+    "parityMapSummary": {
+      "aligned": 5,
+      "near": 0,
+      "gap": 2,
+      "overall": "Low"
+    },
+    "matrixSummary": {
+      "verified": 5,
+      "implemented": 0,
+      "pending": 4
+    }
+  },
+  "adapterConformance": {
+    "generatedAt": "2026-03-06T10:54:01.333Z",
+    "nFixtures": 20,
+    "passedFixtures": 20,
+    "failedFixtures": 0,
+    "checkPass": 102,
+    "checkFail": 0,
+    "totalChecks": 102,
+    "checkConcordance": 100,
+    "fixtureConcordance": 100,
+    "elapsedMs": 4.4,
+    "rows": [
+      {
+        "id": "netmeta_basic",
+        "adapter": "netmeta",
+        "passed": 4,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=netmeta"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "netmeta_rows",
+        "adapter": "netmeta",
+        "passed": 4,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=netmeta"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "gemtc_basic",
+        "adapter": "gemtc",
+        "passed": 6,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=gemtc"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Metadata gemtc_top",
+            "ok": true,
+            "detail": "gemtc_top=A"
+          },
+          {
+            "name": "Parity metric bayes_dic",
+            "ok": true,
+            "detail": "bayes_dic=120.4"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "gemtc_nested",
+        "adapter": "gemtc",
+        "passed": 6,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=gemtc"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=B"
+          },
+          {
+            "name": "Metadata gemtc_top",
+            "ok": true,
+            "detail": "gemtc_top=B"
+          },
+          {
+            "name": "Parity metric bayes_dic",
+            "ok": true,
+            "detail": "bayes_dic=141.1"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "multinma_basic",
+        "adapter": "multinma",
+        "passed": 6,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=multinma"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=B"
+          },
+          {
+            "name": "Metadata multinma_top",
+            "ok": true,
+            "detail": "multinma_top=B"
+          },
+          {
+            "name": "Parity metric bayes_dic",
+            "ok": true,
+            "detail": "bayes_dic=111.2"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "multinma_rows",
+        "adapter": "multinma",
+        "passed": 5,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=multinma"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=B"
+          },
+          {
+            "name": "Metadata multinma_top",
+            "ok": true,
+            "detail": "multinma_top=B"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "bugsnet_basic",
+        "adapter": "bugsnet",
+        "passed": 6,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=bugsnet"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=C"
+          },
+          {
+            "name": "Metadata bugsnet_top",
+            "ok": true,
+            "detail": "bugsnet_top=C"
+          },
+          {
+            "name": "Parity metric bayes_dic",
+            "ok": true,
+            "detail": "bayes_dic=130.5"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "bugsnet_nested",
+        "adapter": "bugsnet",
+        "passed": 5,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=bugsnet"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=C"
+          },
+          {
+            "name": "Metadata bugsnet_top",
+            "ok": true,
+            "detail": "bugsnet_top=C"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "crossnma_basic",
+        "adapter": "crossnma",
+        "passed": 5,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=crossnma"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Metadata crossnma_top",
+            "ok": true,
+            "detail": "crossnma_top=A"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "crossnma_alt",
+        "adapter": "crossnma",
+        "passed": 5,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=crossnma"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=B"
+          },
+          {
+            "name": "Metadata crossnma_top",
+            "ok": true,
+            "detail": "crossnma_top=B"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "mtrank_basic",
+        "adapter": "mtrank",
+        "passed": 6,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=mtrank"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Cluster count extraction",
+            "ok": true,
+            "detail": "clusters=3"
+          },
+          {
+            "name": "Parity cluster metric",
+            "ok": true,
+            "detail": "parity=3"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "mtrank_alt",
+        "adapter": "mtrank",
+        "passed": 6,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=mtrank"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Cluster count extraction",
+            "ok": true,
+            "detail": "clusters=2"
+          },
+          {
+            "name": "Parity cluster metric",
+            "ok": true,
+            "detail": "parity=2"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "midrank_basic",
+        "adapter": "mid_nma_rank",
+        "passed": 5,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=mid_nma_rank"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=B"
+          },
+          {
+            "name": "Metadata mid_rank_best",
+            "ok": true,
+            "detail": "mid_rank_best=B"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "midrank_alt",
+        "adapter": "mid_nma_rank",
+        "passed": 5,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=mid_nma_rank"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Metadata mid_rank_best",
+            "ok": true,
+            "detail": "mid_rank_best=A"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "nmaoutlier_basic",
+        "adapter": "nmaoutlier",
+        "passed": 6,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=nmaoutlier"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Outlier count extraction",
+            "ok": true,
+            "detail": "outliers=2"
+          },
+          {
+            "name": "Parity outlier metric",
+            "ok": true,
+            "detail": "parity=2"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "nmaoutlier_alt",
+        "adapter": "nmaoutlier",
+        "passed": 6,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=nmaoutlier"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=B"
+          },
+          {
+            "name": "Outlier count extraction",
+            "ok": true,
+            "detail": "outliers=1"
+          },
+          {
+            "name": "Parity outlier metric",
+            "ok": true,
+            "detail": "parity=1"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "metainsight_basic",
+        "adapter": "metainsight",
+        "passed": 4,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=metainsight"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "metainsight_rows",
+        "adapter": "metainsight",
+        "passed": 4,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=metainsight"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "generic_basic",
+        "adapter": "generic",
+        "passed": 4,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=generic"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      },
+      {
+        "id": "generic_nested",
+        "adapter": "generic",
+        "passed": 4,
+        "failed": 0,
+        "status": "PASS",
+        "checks": [
+          {
+            "name": "Adapter detection",
+            "ok": true,
+            "detail": "detected=generic"
+          },
+          {
+            "name": "P-score extraction",
+            "ok": true,
+            "detail": "count=3"
+          },
+          {
+            "name": "Top treatment extraction",
+            "ok": true,
+            "detail": "top=A"
+          },
+          {
+            "name": "Extended tolerance map",
+            "ok": true,
+            "detail": "expects extended parity tolerance keys"
+          }
+        ]
+      }
+    ]
+  },
+  "parityCoverageMatrix": {
+    "generatedAt": "2026-03-06T10:54:01.334Z",
+    "rows": [
+      {
+        "method": "netmeta core parity",
+        "adapter": "netmeta",
+        "externalPath": "parity_metrics.core_tau2",
+        "internalReady": true,
+        "note": "Frequentist core parity metrics",
+        "externalLoaded": 0.09757741222767105,
+        "externalPresent": true,
+        "coverage": "Verified",
+        "tone": "success"
+      },
+      {
+        "method": "gemtc Bayesian parity",
+        "adapter": "gemtc",
+        "externalPath": "gemtc_top",
+        "internalReady": true,
+        "note": "Bayesian top-treatment and fit parity",
+        "externalLoaded": "TNK",
+        "externalPresent": true,
+        "coverage": "Verified",
+        "tone": "success"
+      },
+      {
+        "method": "multinma Bayesian parity",
+        "adapter": "multinma",
+        "externalPath": "multinma_top",
+        "internalReady": true,
+        "note": "Bayesian top-treatment bridge",
+        "externalLoaded": "TNK",
+        "externalPresent": true,
+        "coverage": "Verified",
+        "tone": "success"
+      },
+      {
+        "method": "BUGSnet Bayesian parity",
+        "adapter": "bugsnet",
+        "externalPath": "bugsnet_top",
+        "internalReady": true,
+        "note": "BUGSnet Bayesian bridge",
+        "externalLoaded": "TNK",
+        "externalPresent": true,
+        "coverage": "Verified",
+        "tone": "success"
+      },
+      {
+        "method": "crossnma calibrated parity",
+        "adapter": "crossnma",
+        "externalPath": "crossnma_top",
+        "internalReady": false,
+        "note": "Cross-design stress parity",
+        "externalLoaded": null,
+        "externalPresent": false,
+        "coverage": "Pending",
+        "tone": "warning"
+      },
+      {
+        "method": "mtrank cluster parity",
+        "adapter": "mtrank",
+        "externalPath": "mtrank_nclusters",
+        "internalReady": false,
+        "note": "Cluster-count parity",
+        "externalLoaded": null,
+        "externalPresent": false,
+        "coverage": "Pending",
+        "tone": "warning"
+      },
+      {
+        "method": "mid.nma.rank parity",
+        "adapter": "mid_nma_rank",
+        "externalPath": "mid_rank_best",
+        "internalReady": false,
+        "note": "MCID ranking parity",
+        "externalLoaded": null,
+        "externalPresent": false,
+        "coverage": "Pending",
+        "tone": "warning"
+      },
+      {
+        "method": "NMAoutlier parity",
+        "adapter": "nmaoutlier",
+        "externalPath": "nmaoutlier_flagged",
+        "internalReady": false,
+        "note": "Outlier flag parity",
+        "externalLoaded": null,
+        "externalPresent": false,
+        "coverage": "Pending",
+        "tone": "warning"
+      },
+      {
+        "method": "MetaInsight bridge",
+        "adapter": "metainsight",
+        "externalPath": "parity_metrics.core_top",
+        "internalReady": true,
+        "note": "Template + adapter bridge",
+        "externalLoaded": "TNK",
+        "externalPresent": true,
+        "coverage": "Verified",
+        "tone": "success"
+      },
+      {
+        "method": "NMA Pro-only robustness",
+        "adapter": "internal",
+        "externalPath": "",
+        "internalReady": false,
+        "note": "Additional methods beyond base R packages",
+        "nmaOnly": true,
+        "externalLoaded": null,
+        "externalPresent": true,
+        "coverage": "NMA Pro only",
+        "tone": "info"
+      }
+    ],
+    "counts": {
+      "verified": 5,
+      "implemented": 0,
+      "pending": 4
+    }
+  },
+  "externalComparison": {
+    "source": "release-readiness-export",
+    "concordance": 93.33333333333333,
+    "passed": 14,
+    "failed": 1,
+    "total": 15
+  },
+  "goldenRegression": {
+    "applicable": true,
+    "nSnapshots": 1,
+    "rows": [
+      {
+        "snapshotId": "snap_1772794441327_84980",
+        "label": "Release readiness baseline",
+        "analysisFingerprint": "89ca94ad",
+        "createdAt": "2026-03-06T10:54:01.327Z",
+        "total": 6,
+        "passed": 6,
+        "failed": 0,
+        "concordance": 100,
+        "fingerprintMatch": false,
+        "tests": [
+          {
+            "key": "core_top",
+            "baseline": "TNK",
+            "current": "TNK",
+            "diff": 0,
+            "tolerance": 0,
+            "pass": true
+          },
+          {
+            "key": "core_tau2",
+            "baseline": 0.09757741222767105,
+            "current": 0.09757741222767105,
+            "diff": 0,
+            "tolerance": 0.05,
+            "pass": true
+          },
+          {
+            "key": "core_i2",
+            "baseline": 73.78609961383292,
+            "current": 73.78609961383292,
+            "diff": 0,
+            "tolerance": 1,
+            "pass": true
+          },
+          {
+            "key": "bayes_top",
+            "baseline": "Abb",
+            "current": "Abb",
+            "diff": 0,
+            "tolerance": 0,
+            "pass": true
+          },
+          {
+            "key": "bayes_max_split_rhat",
+            "baseline": 0,
+            "current": 0,
+            "diff": 0,
+            "tolerance": 0.05,
+            "pass": true
+          },
+          {
+            "key": "bayes_min_ess",
+            "baseline": 0,
+            "current": 0,
+            "diff": 0,
+            "tolerance": 100,
+            "pass": true
+          }
+        ]
+      }
+    ],
+    "total": 6,
+    "allPass": 6,
+    "allFail": 0,
+    "concordance": 100
+  },
+  "analysis": {
+    "hasResults": true,
+    "studies": 10,
+    "treatments": 6,
+    "effectMeasure": "OR",
+    "estimator": "REML",
+    "topTreatment": "TNK"
+  }
+}

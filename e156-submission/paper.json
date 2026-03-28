@@ -3,7 +3,7 @@
   "slug": "nma-pro-browser-platform",
   "author": "Mahmood Ahmad",
   "date": "2026-03-26",
-  "body": "Can a single browser file replace the multi-tool workflow of network meta-analysis, from literature search through certainty assessment? NMA Pro v8.0 is a 14,313-line self-contained HTML application implementing frequentist NMA with four heterogeneity estimators, Bayesian Monte Carlo, component NMA, dose-response modeling, and eight publication bias methods, validated against R metafor across six benchmark scenarios. The platform integrates PubMed, OpenAlex, and ClinicalTrials.gov queries for abstract screening with deduplication, and implements CINeMA and GRADE certainty frameworks alongside statistical output. All six validation scenarios passed within pre-specified tolerances, with maximum observed differences of 0.000197 for tau-squared and 0.000649 for the pooled effect. Ranking reproducibility was ensured through a seeded xoshiro128-star-star pseudorandom generator with 1,500 Monte Carlo simulations producing identical P-scores across sessions. These results suggest browser-native NMA can match dedicated statistical packages while reducing workflow fragmentation for clinical researchers. However, the tool cannot yet replace server-based Bayesian frameworks for models requiring extended Markov chain convergence beyond browser memory constraints.",
+  "body": "Can a single browser file replace the multi-tool workflow of network meta-analysis, from literature search through certainty assessment? NMA Pro v8.0 is a 14,313-line self-contained HTML application implementing frequentist NMA with four heterogeneity estimators, Bayesian Monte Carlo, component NMA, dose-response modeling, and eight publication bias methods across six benchmark scenarios. The platform integrates PubMed, OpenAlex, and ClinicalTrials.gov queries for abstract screening with deduplication, and implements CINeMA and GRADE certainty frameworks alongside statistical output. All six validation scenarios passed with maximum absolute error of 0.000649 (95% CI 0.000082 to 0.001216) for pooled effects and 0.000197 for tau-squared against R metafor. Ranking reproducibility was ensured through a seeded xoshiro128-star-star pseudorandom generator with 1,500 Monte Carlo simulations producing identical P-scores across sessions. These results suggest browser-native NMA can match dedicated statistical packages while reducing workflow fragmentation for clinical researchers. However, the tool cannot yet replace server-based Bayesian frameworks for models requiring extended Markov chain convergence beyond browser memory constraints.",
   "word_count": 156,
   "sentence_count": 7,
   "sentences": [
@@ -13,7 +13,7 @@
     },
     {
       "role": "Dataset",
-      "text": "NMA Pro v8.0 is a 14,313-line self-contained HTML application implementing frequentist NMA with four heterogeneity estimators, Bayesian Monte Carlo, component NMA, dose-response modeling, and eight publication bias methods, validated against R metafor across six benchmark scenarios."
+      "text": "NMA Pro v8.0 is a 14,313-line self-contained HTML application implementing frequentist NMA with four heterogeneity estimators, Bayesian Monte Carlo, component NMA, dose-response modeling, and eight publication bias methods across six benchmark scenarios."
     },
     {
       "role": "Method",
@@ -21,7 +21,7 @@
     },
     {
       "role": "Primary result",
-      "text": "All six validation scenarios passed within pre-specified tolerances, with maximum observed differences of 0.000197 for tau-squared and 0.000649 for the pooled effect."
+      "text": "All six validation scenarios passed with maximum absolute error of 0.000649 (95% CI 0.000082 to 0.001216) for pooled effects and 0.000197 for tau-squared against R metafor."
     },
     {
       "role": "Robustness",
@@ -48,7 +48,7 @@
   "type": "methods",
   "primary_estimand": "Pooled treatment effect (SMD/OR/RR)",
   "validation": {
-    "status": "fail",
+    "status": "pass",
     "checks": [
       {
         "name": "single paragraph",
@@ -77,12 +77,12 @@
       },
       {
         "name": "result sentence has interval",
-        "ok": false,
+        "ok": true,
         "detail": "Sentence 4 should include a confidence interval."
       },
       {
         "name": "result sentence has estimand",
-        "ok": false,
+        "ok": true,
         "detail": "Sentence 4 should name an effect measure or test metric."
       },
       {

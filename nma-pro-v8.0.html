@@ -26,6 +26,20 @@
 .loading-overlay{position:fixed;inset:0;background:rgba(3,7,18,0.95);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-6);z-index:var(--z-modal);transition:opacity 0.3s}.loading-overlay[aria-hidden="true"]{opacity:0;pointer-events:none}.loading-spinner{width:64px;height:64px;border:4px solid var(--surface-overlay);border-top-color:var(--accent-500);border-right-color:var(--secondary-500);border-radius:50%;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.loading-progress{width:280px;height:8px;background:var(--surface-overlay);border-radius:var(--radius-full);overflow:hidden}.loading-progress__bar{height:100%;background:linear-gradient(90deg,var(--accent-500),var(--secondary-500),var(--tertiary-500));border-radius:var(--radius-full);transition:width 0.3s var(--ease-out)}.loading-message{font-size:var(--text-sm);color:var(--text-secondary);font-family:var(--font-mono)}
 .app-main{padding:var(--space-6) 0 var(--space-8)}.grid{display:grid;gap:var(--space-6)}.grid-cols-2{grid-template-columns:repeat(2,1fr)}.grid-cols-3{grid-template-columns:repeat(3,1fr)}.flex{display:flex}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-2{gap:var(--space-2)}.gap-3{gap:var(--space-3)}.gap-4{gap:var(--space-4)}.gap-6{gap:var(--space-6)}.text-xs{font-size:var(--text-xs)}.text-sm{font-size:var(--text-sm)}.text-center{text-align:center}.text-right{text-align:right}.text-secondary{color:var(--text-secondary)}.text-accent{color:var(--text-accent)}.text-success{color:var(--success-400)}.text-warning{color:var(--warning-400)}.text-danger{color:var(--danger-400)}.font-mono{font-family:var(--font-mono)}.font-semibold{font-weight:600}.font-bold{font-weight:700}.mt-2{margin-top:var(--space-2)}.mt-4{margin-top:var(--space-4)}.mt-6{margin-top:var(--space-6)}.mb-4{margin-bottom:var(--space-4)}.w-full{width:100%}.overflow-auto{overflow:auto}.overflow-x-auto{overflow-x:auto}@media(max-width:1200px){.grid-cols-2,.grid-cols-3{grid-template-columns:1fr}}@media(max-width:768px){.container{padding:0 var(--space-4)}.app-header__inner{flex-wrap:wrap}.tab-btn span:last-child{display:none}}[data-theme="light"] .card{box-shadow:var(--shadow-md)}[data-theme="light"] .loading-overlay{background:rgba(248,250,252,0.95)}.feature-pills{display:flex;flex-wrap:wrap;gap:var(--space-2)}.feature-pill{padding:var(--space-1) var(--space-3);background:var(--surface-overlay);border:1px solid var(--border-subtle);border-radius:var(--radius-full);font-size:var(--text-xs);color:var(--text-secondary)}
 [title]{cursor:help}
+.tabs-tools{display:grid;grid-template-columns:minmax(240px,1.2fr) minmax(240px,1fr);gap:var(--space-4);align-items:start;margin-bottom:var(--space-4)}
+.tabs-tools__search{min-width:0}
+.tabs-tools__label,.tabs-tools__header{display:flex;align-items:center;justify-content:space-between;font-size:var(--text-xs);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:var(--space-2)}
+.tabs-tools__recents{background:var(--surface-base);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);padding:var(--space-3) var(--space-4);box-shadow:var(--shadow-sm)}
+.tabs-tools__chips{display:flex;flex-wrap:wrap;gap:var(--space-2);min-height:36px}
+.tabs-tools__clear{padding:0;border:none;background:none;color:var(--text-accent);font-family:var(--font-mono);font-size:var(--text-xs);cursor:pointer}
+.tabs-tools__clear:hover{color:var(--text-primary)}
+.tabs-tools__empty{grid-column:1/-1;padding:var(--space-3) var(--space-4);border:1px dashed var(--border-default);border-radius:var(--radius-lg);font-size:var(--text-sm);color:var(--text-secondary);background:var(--surface-raised)}
+.tabs-recent-chip{border:none;border-radius:var(--radius-full);padding:var(--space-2) var(--space-3);background:var(--surface-overlay);color:var(--text-secondary);font-family:var(--font-display);font-size:var(--text-xs);font-weight:600;cursor:pointer;transition:all var(--transition-fast)}
+.tabs-recent-chip:hover{background:var(--surface-raised);color:var(--text-primary);transform:translateY(-1px)}
+.tabs-recent-chip--active{background:linear-gradient(135deg,var(--accent-600),var(--secondary-500));color:white;box-shadow:var(--shadow-sm)}
+.tabs-recent-chip--empty{cursor:default;color:var(--text-tertiary);transform:none}
+.tab-btn[hidden]{display:none!important}
+@media(max-width:980px){.tabs-tools{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -179,6 +193,17 @@ R netmeta (v3.2-0) Reference:
 </div>
 </div>
 <main class="app-main"><div class="container">
+<section class="tabs-tools" aria-label="Tab navigation tools">
+<div>
+<label class="tabs-tools__label" for="nma-tab-search">Find Workspace</label>
+<input type="search" id="nma-tab-search" class="input tabs-tools__search" placeholder="Search tabs by name or purpose (/)" autocomplete="off">
+</div>
+<div class="tabs-tools__recents">
+<div class="tabs-tools__header"><span>Recent</span><button type="button" class="tabs-tools__clear" id="nma-clear-recents">Clear</button></div>
+<div class="tabs-tools__chips" id="nma-recent-tabs"></div>
+</div>
+<div class="tabs-tools__empty" id="nma-tab-empty" hidden>No workspaces match this filter.</div>
+</section>
 <nav class="tabs-nav" style="margin-bottom:var(--space-6);">
 <button class="tab-btn tab-btn--active" data-tab="data" title="Enter your study data here - add treatments, events, sample sizes, and other study details"><span></span><span>Data</span></button>
 <button class="tab-btn" data-tab="rapidreview" title="Abstract-only rapid review workspace using PubMed and OpenAlex search, deduplication, and title/abstract screening"><span></span><span>Rapid Review</span></button>
@@ -6356,10 +6381,59 @@ announce('Redo: '+AppState.studies.length+' studies');
 };
 
 const AnalysisSnapshots={
+storageKey:'nma-pro-analysis-snapshots-v1',
 saved:[],
+selectedLeftId:null,
+selectedRightId:null,
+loadFromStorage(){
+try{
+const raw=JSON.parse(localStorage.getItem(this.storageKey)||'[]');
+this.saved=Array.isArray(raw)?raw.map(snapshot=>this.normalize(snapshot)).filter(Boolean):[];
+}catch(_){
+this.saved=[];
+}
+this.syncSelection();
+this.updateToolbarState();
+return this.saved;
+},
+normalize(snapshot){
+if(!snapshot||typeof snapshot!=='object')return null;
+const ranking=Array.isArray(snapshot.ranking)?snapshot.ranking.map(item=>({treatment:String(item.treatment||''),rank:Number(item.rank)||0,pScore:Number(item.pScore)||0})).filter(item=>item.treatment):[];
+const effects=snapshot.effects&&typeof snapshot.effects==='object'?snapshot.effects:{};
+return{
+id:String(snapshot.id||`snap_${Date.now()}_${Math.floor(Math.random()*100000)}`),
+name:String(snapshot.name||'Snapshot'),
+timestamp:String(snapshot.timestamp||new Date().toISOString()),
+effectMeasure:String(snapshot.effectMeasure||''),
+estimator:String(snapshot.estimator||''),
+reference:String(snapshot.reference||''),
+nStudies:Number(snapshot.nStudies)||0,
+nTreatments:Number(snapshot.nTreatments)||ranking.length,
+tau2:Number.isFinite(Number(snapshot.tau2))?Number(snapshot.tau2):null,
+I2:Number.isFinite(Number(snapshot.I2))?Number(snapshot.I2):null,
+ranking,
+effects
+};
+},
+persist(){
+localStorage.setItem(this.storageKey,JSON.stringify(this.saved));
+this.updateToolbarState();
+this.renderManager();
+},
+syncSelection(){
+const ids=new Set(this.saved.map(snapshot=>snapshot.id));
+if(!ids.has(this.selectedRightId))this.selectedRightId=this.saved.at(-1)?.id||null;
+if(!ids.has(this.selectedLeftId)||this.selectedLeftId===this.selectedRightId)this.selectedLeftId=this.saved.at(-2)?.id||this.saved.at(-1)?.id||null;
+if(this.selectedLeftId===this.selectedRightId&&this.saved.length>1)this.selectedLeftId=this.saved.at(-2).id;
+},
+updateToolbarState(){
+const compareBtn=document.getElementById('compareSnapshotsBtn');
+if(compareBtn)compareBtn.style.display=this.saved.length>=2?'inline-flex':'none';
+},
 save(name){
 if(!AppState.results||!AppState.ranking)return{success:false,message:'Run analysis first'};
 const snapshot={
+id:`snap_${Date.now()}_${Math.floor(Math.random()*100000)}`,
 name:name??('Snapshot '+(this.saved.length+1)),
 timestamp:new Date().toISOString(),
 effectMeasure:AppState.effectMeasure,
@@ -6377,12 +6451,27 @@ pValue:AppState.results.effects.effects[t]?.pValue
 }]))
 };
 this.saved.push(snapshot);
+if(this.saved.length>24)this.saved=this.saved.slice(-24);
+this.selectedRightId=snapshot.id;
+this.selectedLeftId=this.saved.at(-2)?.id||snapshot.id;
+this.persist();
 announce('Snapshot saved: '+snapshot.name);
 return{success:true,snapshot};
 },
+getSnapshotById(snapshotId){
+return this.saved.find(snapshot=>snapshot.id===snapshotId)||null;
+},
 compare(idx1,idx2){
 if(!this.saved[idx1]||!this.saved[idx2])return null;
-const s1=this.saved[idx1],s2=this.saved[idx2];
+return this.comparePair(this.saved[idx1],this.saved[idx2]);
+},
+compareIds(leftId,rightId){
+const left=this.getSnapshotById(leftId);
+const right=this.getSnapshotById(rightId);
+if(!left||!right)return null;
+return this.comparePair(left,right);
+},
+comparePair(s1,s2){
 const treatments=[...new Set([...s1.ranking.map(r=>r.treatment),...s2.ranking.map(r=>r.treatment)])];
 const comparison=treatments.map(t=>{
 const r1=s1.ranking.find(r=>r.treatment===t);
@@ -6399,13 +6488,99 @@ changed:r1?.rank!==r2?.rank
 };
 });
 return{
+snapshotId1:s1.id,snapshotId2:s2.id,
 snapshot1:s1.name,snapshot2:s2.name,
+snapshot1Timestamp:s1.timestamp,snapshot2Timestamp:s2.timestamp,
+snapshot1Top:s1.ranking[0]?.treatment||'N/A',
+snapshot2Top:s2.ranking[0]?.treatment||'N/A',
 comparison,
 tau2Change:s2.tau2-s1.tau2,
 I2Change:(s2.I2??0)-(s1.I2??0),
 bestChanged:s1.ranking[0]?.treatment!==s2.ranking[0]?.treatment,
 nRankChanges:comparison.filter(c=>c.changed).length
 };
+},
+renderManager(){
+const container=document.getElementById('analysisSnapshotWorkflowContainer');
+if(!container)return;
+this.syncSelection();
+const esc=Security.escapeHtml;
+const snapshots=[...this.saved].reverse();
+const latest=snapshots[0]||null;
+const baselineLabel=this.saved.length>=2?'Baseline':'Snapshot';
+const optionMarkup=snapshots.map(snapshot=>`<option value="${esc(snapshot.id)}"${snapshot.id===this.selectedLeftId?' selected':''}>${esc(snapshot.name)} | ${esc(new Date(snapshot.timestamp).toLocaleString())}</option>`).join('');
+const comparisonOptionMarkup=snapshots.map(snapshot=>`<option value="${esc(snapshot.id)}"${snapshot.id===this.selectedRightId?' selected':''}>${esc(snapshot.name)} | ${esc(new Date(snapshot.timestamp).toLocaleString())}</option>`).join('');
+const rows=snapshots.map(snapshot=>{
+const flag=snapshot.id===this.selectedLeftId?baselineLabel:snapshot.id===this.selectedRightId?'Compare':'';
+const top=snapshot.ranking[0]?.treatment||'N/A';
+return`<tr><td>${esc(snapshot.name)}</td><td class="font-mono">${esc(new Date(snapshot.timestamp).toLocaleString())}</td><td>${esc(top)}</td><td class="font-mono">${snapshot.I2==null?'N/A':snapshot.I2.toFixed(1)+'%'}</td><td class="font-mono">${snapshot.tau2==null?'N/A':snapshot.tau2.toFixed(4)}</td><td>${flag?`<span class="evidence-badge evidence-badge--moderate">${flag}</span>`:'<span class="text-secondary">Stored</span>'}</td></tr>`;
+}).join('');
+container.innerHTML=`<div class="grid grid-cols-2"><div><label class="text-xs text-secondary">Snapshot Label</label><input class="input mt-1" id="analysisSnapshotLabelInput" placeholder="Optional name for this result state"></div><div class="grid grid-cols-2 gap-3"><div><label class="text-xs text-secondary">${baselineLabel}</label><select class="select mt-1 w-full" id="analysisSnapshotLeftSelect"${this.saved.length?'':' disabled'}>${optionMarkup||'<option value="">No snapshots</option>'}</select></div><div><label class="text-xs text-secondary">Compare To</label><select class="select mt-1 w-full" id="analysisSnapshotRightSelect"${this.saved.length?'':' disabled'}>${comparisonOptionMarkup||'<option value="">No snapshots</option>'}</select></div></div></div><div class="flex gap-2 flex-wrap items-center mt-4"><button class="btn btn--sm btn--secondary" id="saveAnalysisSnapshotBtn">Save Current</button><button class="btn btn--sm btn--ghost" id="compareAnalysisSnapshotBtn"${this.saved.length>=2?'':' disabled'}>Compare Selected</button><button class="btn btn--sm btn--ghost" id="clearAnalysisSnapshotsBtn"${this.saved.length?'':' disabled'}>Clear Stored</button><span class="text-xs text-secondary">Snapshots persist in this browser for this workspace.</span></div><div class="stat-grid mt-4"><div class="stat-card"><div class="stat-card__value">${this.saved.length}</div><div class="stat-card__label">Saved Snapshots</div></div><div class="stat-card"><div class="stat-card__value">${latest?esc(latest.ranking[0]?.treatment||'N/A'):'--'}</div><div class="stat-card__label">Latest Top Treatment</div></div><div class="stat-card"><div class="stat-card__value">${latest&&latest.I2!=null?latest.I2.toFixed(1)+'%':'--'}</div><div class="stat-card__label">Latest I²</div></div></div><div class="mt-4" style="max-height:280px;overflow:auto"><table class="data-table"><thead><tr><th>Name</th><th>Saved</th><th>Top</th><th>I²</th><th>t²</th><th>Role</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="text-secondary">Save your first result snapshot after running analysis.</td></tr>'}</tbody></table></div>`;
+this.bindManagerEvents();
+this.renderSelectedComparison();
+},
+bindManagerEvents(){
+const labelInput=document.getElementById('analysisSnapshotLabelInput');
+const saveBtn=document.getElementById('saveAnalysisSnapshotBtn');
+const compareBtn=document.getElementById('compareAnalysisSnapshotBtn');
+const clearBtn=document.getElementById('clearAnalysisSnapshotsBtn');
+const leftSelect=document.getElementById('analysisSnapshotLeftSelect');
+const rightSelect=document.getElementById('analysisSnapshotRightSelect');
+if(saveBtn)saveBtn.onclick=()=>{
+const result=this.save(labelInput?.value?.trim()||undefined);
+if(!result.success){
+announce(result.message||'Run analysis first');
+return;
+}
+if(labelInput)labelInput.value='';
+};
+if(compareBtn)compareBtn.onclick=()=>this.renderSelectedComparison(true);
+if(clearBtn)clearBtn.onclick=()=>{
+this.saved=[];
+this.selectedLeftId=null;
+this.selectedRightId=null;
+localStorage.removeItem(this.storageKey);
+this.updateToolbarState();
+this.renderManager();
+announce('Stored snapshots cleared');
+};
+if(leftSelect)leftSelect.onchange=(event)=>{
+this.selectedLeftId=event.target.value||null;
+this.renderManager();
+};
+if(rightSelect)rightSelect.onchange=(event)=>{
+this.selectedRightId=event.target.value||null;
+this.renderManager();
+};
+},
+renderSelectedComparison(shouldAnnounce=false){
+const container=document.getElementById('analysisSnapshotComparisonContainer');
+if(!container)return null;
+this.syncSelection();
+if(this.saved.length<2){
+container.innerHTML='<p class="text-secondary text-center">Save at least two snapshots to compare how rankings and heterogeneity move across result states.</p>';
+this.updateToolbarState();
+return null;
+}
+if(!this.selectedLeftId||!this.selectedRightId||this.selectedLeftId===this.selectedRightId){
+container.innerHTML='<p class="text-secondary text-center">Choose two different snapshots to compare them here.</p>';
+return null;
+}
+const result=this.compareIds(this.selectedLeftId,this.selectedRightId);
+if(!result){
+container.innerHTML='<p class="text-secondary text-center">The selected snapshots are no longer available.</p>';
+return null;
+}
+const esc=Security.escapeHtml;
+const rows=result.comparison.map(item=>{
+const rankShift=item.rankChange>0?`<span class="text-success">↑${item.rankChange}</span>`:item.rankChange<0?`<span class="text-danger">↓${Math.abs(item.rankChange)}</span>`:'—';
+const pScoreDelta=Number.isFinite(item.pScore1)&&Number.isFinite(item.pScore2)?item.pScore2-item.pScore1:null;
+const pScoreTxt=pScoreDelta==null?'N/A':`${pScoreDelta>=0?'+':''}${pScoreDelta.toFixed(3)}`;
+return`<tr><td>${esc(item.treatment)}</td><td class="font-mono">${item.rank1}</td><td class="font-mono">${item.rank2}</td><td class="text-center">${rankShift}</td><td class="font-mono">${pScoreTxt}</td></tr>`;
+}).join('');
+container.innerHTML=`<div class="alert alert--${result.bestChanged?'warning':'success'} mb-4"><span class="alert__icon"></span><div class="alert__text"><strong>${esc(result.snapshot1)}</strong> (${esc(new Date(result.snapshot1Timestamp).toLocaleString())}) vs <strong>${esc(result.snapshot2)}</strong> (${esc(new Date(result.snapshot2Timestamp).toLocaleString())})<br><strong>Top treatment:</strong> ${esc(result.snapshot1Top)} → ${esc(result.snapshot2Top)} | <strong>Rank changes:</strong> ${result.nRankChanges}</div></div><div class="stat-grid mb-4"><div class="stat-card"><div class="stat-card__value">${result.bestChanged?'Changed':'Stable'}</div><div class="stat-card__label">Best Treatment</div></div><div class="stat-card"><div class="stat-card__value">${Number.isFinite(result.I2Change)?`${result.I2Change>=0?'+':''}${result.I2Change.toFixed(1)}%`:'N/A'}</div><div class="stat-card__label">I² Delta</div></div><div class="stat-card"><div class="stat-card__value">${Number.isFinite(result.tau2Change)?`${result.tau2Change>=0?'+':''}${result.tau2Change.toFixed(4)}`:'N/A'}</div><div class="stat-card__label">t² Delta</div></div></div><div style="max-height:320px;overflow:auto"><table class="data-table"><thead><tr><th>Treatment</th><th>Rank (${esc(result.snapshot1)})</th><th>Rank (${esc(result.snapshot2)})</th><th>Movement</th><th>P-score Δ</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+if(shouldAnnounce)announce('Comparing '+result.snapshot1+' vs '+result.snapshot2);
+return result;
 }
 };
 
@@ -6426,7 +6601,7 @@ init(){document.addEventListener('click',e=>{if(!e.target.closest('.download-dro
 };
 
 function toggleTheme(){const html=document.documentElement,curr=html.getAttribute('data-theme'),next=curr==='light'?'dark':'light';html.setAttribute('data-theme',next);document.getElementById('themeIcon').textContent=next==='light'?'??':'??';localStorage.setItem('nma-pro-theme',next);if(AppState.results)setTimeout(()=>{refreshAllPlots()},100)}
-function refreshAllPlots(){if(!AppState.results)return;const r=AppState.results;renderNetworkGraph(AppState.studies,r.treatments);renderForestPlot(r);if(Array.isArray(AppState.ranking)&&AppState.ranking.length>0){renderRankingTable(AppState.ranking);renderRankogram(AppState.ranking);renderRankProbMatrix(AppState.ranking)}if(r.heterogeneity)renderFunnelPlot(r);if(r.consistency){renderConsistencyResults(r.consistency);renderConsistencyPlot(r.consistency)}if(AppState.contributionMatrix&&AppState.contributionMatrix.applicable)renderContributionMatrix(AppState.contributionMatrix);if(AppState.netHeatData&&AppState.netHeatData.applicable)renderNetHeatPlot(AppState.netHeatData);if(AppState.metaRegResult&&AppState.metaRegCovariate)renderBubblePlot(AppState.metaRegResult,AppState.metaRegCovariate);if(AppState.cnmaResults){refreshCNMAForestPlot();renderCNMASplitPlot(AppState.cnmaResults)};if(AppState.bayesianResults)renderBayesianResults(AppState.bayesianResults);if(AppState.leaveOneOutResults&&AppState.leaveOneOutResults.applicable){renderLeaveOneOutResults(AppState.leaveOneOutResults);drawInfluencePlot(AppState.leaveOneOutResults)}if(AppState.cumulativeResults)renderCumulativeResults(AppState.cumulativeResults);if(AppState.doseResponseResults&&AppState.doseResponseResults.applicable)refreshDoseResponsePlot();if(AppState.subgroupResults&&AppState.subgroupResults.applicable){renderSubgroupResults(AppState.subgroupResults);renderSubgroupForestPlot(AppState.subgroupResults)}if(AppState.pubBiasResults)renderPubBiasResults(AppState.pubBiasResults);if(AppState.cstreamResults)renderCSTREAMResults(AppState.cstreamResults);try{ComparisonHeatmap.render(AppState.results);}catch(e){}}
+function refreshAllPlots(){if(!AppState.results)return;const r=AppState.results;renderNetworkGraph(AppState.studies,r.treatments);renderForestPlot(r);if(Array.isArray(AppState.ranking)&&AppState.ranking.length>0){renderRankingTable(AppState.ranking);renderRankogram(AppState.ranking);renderRankProbMatrix(AppState.ranking)}if(r.heterogeneity)renderFunnelPlot(r);if(r.consistency){renderConsistencyResults(r.consistency);renderConsistencyPlot(r.consistency)}if(AppState.contributionMatrix&&AppState.contributionMatrix.applicable)renderContributionMatrix(AppState.contributionMatrix);if(AppState.netHeatData&&AppState.netHeatData.applicable)renderNetHeatPlot(AppState.netHeatData);if(AppState.metaRegResult&&AppState.metaRegCovariate)renderBubblePlot(AppState.metaRegResult,AppState.metaRegCovariate);if(AppState.cnmaResults){refreshCNMAForestPlot();renderCNMASplitPlot(AppState.cnmaResults)};if(AppState.bayesianResults)renderBayesianResults(AppState.bayesianResults);if(AppState.leaveOneOutResults&&AppState.leaveOneOutResults.applicable){renderLeaveOneOutResults(AppState.leaveOneOutResults);drawInfluencePlot(AppState.leaveOneOutResults)}if(AppState.cumulativeResults)renderCumulativeResults(AppState.cumulativeResults);if(AppState.doseResponseResults&&AppState.doseResponseResults.applicable)refreshDoseResponsePlot();if(AppState.subgroupResults&&AppState.subgroupResults.applicable){renderSubgroupResults(AppState.subgroupResults);renderSubgroupForestPlot(AppState.subgroupResults)}if(AppState.pubBiasResults)renderPubBiasResults(AppState.pubBiasResults);if(AppState.cstreamResults)renderCSTREAMResults(AppState.cstreamResults);try{ComparisonHeatmap.render(AppState.results);}catch(e){}TreatmentFocusLab.render()}
 function restoreLoadedAnalysisState(){if(!AppState.results||typeof AppState.results!=='object')return;try{refreshAllPlots();if(AppState.results.heterogeneity)updateHeterogeneityPanel(AppState.results.heterogeneity,AppState.results.tau2CI,AppState.results.effects?.correctionMethod,AppState.results.modelSelection);if(AppState.results.leagueTable)renderLeagueTable(AppState.results.leagueTable,AppState.effectMeasure);if(AppState.cinemaResults)renderCINeMAResults(AppState.cinemaResults);if(AppState.gradeResults)renderGRADEResults(AppState.gradeResults);if(AppState.results.effects&&AppState.reference)renderEValues(AppState.results);if(AppState.results.effects)renderThresholdAnalysis(AppState.results)}catch(err){console.warn('Failed to restore loaded analysis state',err)}}
 function refreshDoseResponsePlot(){const dr=AppState.doseResponseResults;if(!dr||!dr.applicable||typeof Plotly==='undefined'||!dr.doseEffectCurve||dr.doseEffectCurve.length===0)return;const colors=getThemeColors();const isRatio=['OR','RR','HR'].includes(AppState.effectMeasure);const plotEl=document.getElementById('doseResponsePlot');if(!plotEl)return;const plotWidth=plotEl.offsetWidth||800;const maxDose=dr.doseData&&dr.doseData.length>0?Math.max(...dr.doseData.map(d=>d.dose)):1;Plotly.newPlot('doseResponsePlot',[{type:'scatter',mode:'lines',name:'Emax Curve',x:dr.doseEffectCurve.map(d=>d.dose),y:dr.doseEffectCurve.map(d=>isRatio?Math.exp(d.effect):d.effect),line:{color:colors.accent,width:3}},{type:'scatter',mode:'markers',name:'Studies',x:dr.doseData.map(d=>d.dose),y:dr.doseData.map(d=>isRatio?Math.exp(d.yi):d.yi),marker:{size:12,color:colors.node,line:{color:'white',width:1}},text:dr.doseData.map(d=>d.study),hovertemplate:'%{text}<br>Dose: %{x}<br>Effect: %{y:.3f}<extra></extra>'}],{paper_bgcolor:colors.background,plot_bgcolor:colors.background,width:plotWidth,height:340,xaxis:{title:{text:'Dose (mg)',font:{size:12}},gridcolor:colors.grid,tickfont:{color:colors.text}},yaxis:{title:{text:isRatio?'Odds Ratio':'Effect Size',font:{size:12}},gridcolor:colors.grid,tickfont:{color:colors.text}},shapes:[{type:'line',x0:0,x1:maxDose*1.2,y0:isRatio?1:0,y1:isRatio?1:0,line:{color:colors.danger,width:1,dash:'dash'}}],margin:{l:60,r:20,t:20,b:50},font:{color:colors.text},showlegend:true,legend:{x:1,y:1,xanchor:'right'}},{responsive:true})}
 function refreshCNMAForestPlot(){const res=AppState.cnmaResults;if(!res||!res.applicable||typeof Plotly==='undefined')return;const colors=getThemeColors();const isRatio=['OR','RR','HR'].includes(AppState.effectMeasure);const y=res.componentEffects.map(c=>c.component),x=res.componentEffects.map(c=>isRatio?Math.exp(c.estimate):c.estimate),xL=res.componentEffects.map(c=>isRatio?Math.exp(c.ci_lower):c.ci_lower),xU=res.componentEffects.map(c=>isRatio?Math.exp(c.ci_upper):c.ci_upper);Plotly.newPlot('cnmaForestPlot',[{type:'scatter',mode:'markers',x:x,y:y,error_x:{type:'data',symmetric:false,array:xU.map((u,i)=>u-x[i]),arrayminus:x.map((v,i)=>v-xL[i]),color:colors.secondary,thickness:2,width:8},marker:{size:14,color:colors.secondary,symbol:'diamond'}}],{paper_bgcolor:colors.background,plot_bgcolor:colors.background,xaxis:{type:isRatio?'log':'linear',gridcolor:colors.grid,tickfont:{color:colors.text}},yaxis:{gridcolor:colors.grid,tickfont:{color:colors.text}},shapes:[{type:'line',x0:isRatio?1:0,x1:isRatio?1:0,y0:-0.5,y1:y.length-0.5,line:{color:colors.danger,width:2,dash:'dash'}}],margin:{l:100,r:20,t:20,b:50},font:{color:colors.text}},{responsive:true})}
@@ -6442,11 +6617,12 @@ function clearAnalysisOutputs(){['results','ranking','cnmaResults','metaRegResul
 
 const RapidReview={
 injectPanel(){const anchor=document.getElementById('panel-data');if(!anchor||document.getElementById('panel-rapidreview'))return;anchor.insertAdjacentHTML('afterend',`<div id="panel-rapidreview" class="tab-panel"><div class="grid grid-cols-2"><div class="card"><div class="card__header"><span class="card__title">Rapid Review Search</span><div class="flex gap-2"><button class="btn btn--sm btn--ghost" id="seedRapidReviewQueryBtn">Seed Query</button><button class="btn btn--sm btn--primary" id="runRapidReviewSearchBtn">Search Sources</button></div></div><div class="card__body"><div class="alert alert--info mb-4"><span class="alert__icon"></span><div class="alert__text">Abstract/registry workflow: searches PubMed, OpenAlex, and ClinicalTrials.gov; deduplicates records; and supports title/abstract/registry-summary screening. No PDFs or full text are fetched. ClinicalTrials.gov uses the bundled local helper when browser CORS blocks direct access.</div></div><div class="grid grid-cols-2"><div><label class="text-xs text-secondary">Review Query</label><textarea class="input mt-1" id="rapidReviewQuery" rows="4" placeholder="e.g. atrial fibrillation anticoagulants randomized trial"></textarea></div><div class="flex flex-col gap-3"><div class="grid grid-cols-2 gap-3"><div><label class="text-xs text-secondary">Max Records Per Source</label><input class="input mt-1" id="rapidReviewMaxRecords" type="number" min="5" max="100" step="5" value="25"></div><div><label class="text-xs text-secondary">Earliest Year</label><input class="input mt-1" id="rapidReviewMinYear" type="number" min="1900" max="2100" step="1" placeholder="2016"></div></div><div><label class="text-xs text-secondary">Contact Email (recommended for polite API use)</label><input class="input mt-1" id="rapidReviewContactEmail" type="email" placeholder="your.email@example.com"></div><div class="flex gap-4 flex-wrap items-center mt-2"><label class="checkbox-label"><input type="checkbox" id="rapidReviewSourcePubMed" checked> PubMed</label><label class="checkbox-label"><input type="checkbox" id="rapidReviewSourceOpenAlex" checked> OpenAlex</label><label class="checkbox-label"><input type="checkbox" id="rapidReviewSourceCTGov" checked> ClinicalTrials.gov</label><label class="checkbox-label"><input type="checkbox" id="rapidReviewTrialsOnly"> Likely RCT/interventional only</label><label class="checkbox-label"><input type="checkbox" id="rapidReviewExpandQuery" checked> Broad recall expansion</label></div><div class="grid grid-cols-2 gap-3 mt-2"><div><label class="text-xs text-secondary">CT.gov Helper URL</label><input class="input mt-1" id="rapidReviewHelperUrl" type="text" placeholder="http://127.0.0.1:8765"></div><div class="flex gap-2 items-end"><button class="btn btn--sm btn--ghost" id="checkRapidReviewHelperBtn">Check Helper</button><button class="btn btn--sm btn--ghost" id="resetRapidReviewHelperBtn">Reset URL</button></div></div><div id="rapidReviewHelperStatus" class="mt-3"></div><p class="text-xs text-secondary mt-2">Recommended Windows startup: <span class="font-mono">start_nma_rapid_review.bat</span>. A browser page cannot start Python directly, so the bundled launcher starts the CT.gov helper and opens the app with the helper ready.</p><p class="text-xs text-secondary mt-2">ClinicalTrials.gov remains enabled by default for search and extraction. Use the year and trial filters when you need a post-2015 RCT screen. Broad recall expansion reruns a relaxed query and deduplicates results to reduce missed modern trials.</p><p class="text-xs text-secondary mt-2">Draft-study export stays conservative and leaves effect data for manual verification before NMA.</p></div></div><div id="rapidReviewStatus" class="mt-4"></div></div></div><div class="card"><div class="card__header"><span class="card__title">Screening Snapshot</span><div class="flex gap-2"><button class="btn btn--sm btn--ghost" id="clearRapidReviewBtn">Clear</button><button class="btn btn--sm btn--ghost" id="exportRapidReviewCsvBtn">Export CSV</button><button class="btn btn--sm btn--secondary" id="importIncludedRapidReviewBtn">Create Draft Studies</button></div></div><div class="card__body"><div id="rapidReviewSummaryCards" class="stat-grid"></div><div id="rapidReviewSourceSummary" class="mt-4"></div></div></div></div><div class="card mt-6"><div class="card__header"><span class="card__title">Title & Abstract Screening Queue</span><div class="flex gap-2 flex-wrap items-center"><select class="select" id="rapidReviewStatusFilter"><option value="all">All decisions</option><option value="unreviewed">Unreviewed</option><option value="include">Include</option><option value="maybe">Maybe</option><option value="exclude">Exclude</option></select><input class="input" id="rapidReviewTextFilter" placeholder="Filter title / abstract / registry summary" style="width:240px"></div></div><div class="card__body"><div id="rapidReviewRecordsContainer"><p class="text-secondary text-center">Run a search to load records from PubMed, OpenAlex, and ClinicalTrials.gov.</p></div></div></div><div class="card mt-6"><div class="card__header"><span class="card__title">Selected Record</span><div class="flex gap-2"><button class="btn btn--sm btn--ghost" id="includeSelectedRapidReviewBtn">Include</button><button class="btn btn--sm btn--ghost" id="maybeSelectedRapidReviewBtn">Maybe</button><button class="btn btn--sm btn--ghost" id="excludeSelectedRapidReviewBtn">Exclude</button><button class="btn btn--sm btn--secondary" id="addSelectedRapidReviewBtn">Add Draft Study</button></div></div><div class="card__body"><div id="rapidReviewSelectedRecord"><p class="text-secondary text-center">Select a record to inspect abstract- or registry-derived extraction hints and draft-study suggestions.</p></div></div></div></div>`)} ,
-init(){this.injectPanel();this.syncInputs();document.getElementById('runRapidReviewSearchBtn')?.addEventListener('click',()=>this.search());document.getElementById('seedRapidReviewQueryBtn')?.addEventListener('click',()=>this.seedQuery());document.getElementById('clearRapidReviewBtn')?.addEventListener('click',()=>this.clear());document.getElementById('exportRapidReviewCsvBtn')?.addEventListener('click',()=>this.exportCSV());document.getElementById('importIncludedRapidReviewBtn')?.addEventListener('click',()=>this.addIncludedToStudies());document.getElementById('includeSelectedRapidReviewBtn')?.addEventListener('click',()=>{if(AppState.rapidReviewSelectedId)this.setDecision(AppState.rapidReviewSelectedId,'include')});document.getElementById('maybeSelectedRapidReviewBtn')?.addEventListener('click',()=>{if(AppState.rapidReviewSelectedId)this.setDecision(AppState.rapidReviewSelectedId,'maybe')});document.getElementById('excludeSelectedRapidReviewBtn')?.addEventListener('click',()=>{if(AppState.rapidReviewSelectedId)this.setDecision(AppState.rapidReviewSelectedId,'exclude')});document.getElementById('addSelectedRapidReviewBtn')?.addEventListener('click',()=>this.addSelectedToStudies());document.getElementById('rapidReviewStatusFilter')?.addEventListener('change',()=>this.renderRecords());document.getElementById('rapidReviewTextFilter')?.addEventListener('input',()=>this.renderRecords());document.getElementById('rapidReviewHelperUrl')?.addEventListener('change',()=>{this.getHelperBase();this.renderHelperState()});document.getElementById('checkRapidReviewHelperBtn')?.addEventListener('click',()=>this.checkHelper(false));document.getElementById('resetRapidReviewHelperBtn')?.addEventListener('click',()=>this.resetHelperBase());this.render();setTimeout(()=>this.checkHelper(true),0)},
+init(){this.injectPanel();this.syncInputs();document.getElementById('runRapidReviewSearchBtn')?.addEventListener('click',()=>this.search());document.getElementById('seedRapidReviewQueryBtn')?.addEventListener('click',()=>this.seedQuery());document.getElementById('clearRapidReviewBtn')?.addEventListener('click',()=>this.clear());document.getElementById('exportRapidReviewCsvBtn')?.addEventListener('click',()=>this.exportCSV());document.getElementById('importIncludedRapidReviewBtn')?.addEventListener('click',()=>this.addIncludedToStudies());document.getElementById('includeSelectedRapidReviewBtn')?.addEventListener('click',()=>{if(AppState.rapidReviewSelectedId)this.setDecision(AppState.rapidReviewSelectedId,'include')});document.getElementById('maybeSelectedRapidReviewBtn')?.addEventListener('click',()=>{if(AppState.rapidReviewSelectedId)this.setDecision(AppState.rapidReviewSelectedId,'maybe')});document.getElementById('excludeSelectedRapidReviewBtn')?.addEventListener('click',()=>{if(AppState.rapidReviewSelectedId)this.setDecision(AppState.rapidReviewSelectedId,'exclude')});document.getElementById('addSelectedRapidReviewBtn')?.addEventListener('click',()=>this.addSelectedToStudies());document.getElementById('rapidReviewStatusFilter')?.addEventListener('change',()=>this.renderRecords());document.getElementById('rapidReviewTextFilter')?.addEventListener('input',()=>this.renderRecords());document.getElementById('rapidReviewHelperUrl')?.addEventListener('change',()=>{this.getHelperBase();this.renderHelperState()});document.getElementById('checkRapidReviewHelperBtn')?.addEventListener('click',()=>this.checkHelper(false));document.getElementById('resetRapidReviewHelperBtn')?.addEventListener('click',()=>this.resetHelperBase());this.render();if(this.hasConfiguredHelper())setTimeout(()=>this.checkHelper(true),0)},
 syncInputs(){const q=document.getElementById('rapidReviewQuery');if(q)q.value=AppState.rapidReviewQuery||'';const email=document.getElementById('rapidReviewContactEmail');if(email)email.value=AppState.rapidReviewEmail||'';const minYear=document.getElementById('rapidReviewMinYear');if(minYear)minYear.value=AppState.rapidReviewMinYear||'';const trialsOnly=document.getElementById('rapidReviewTrialsOnly');if(trialsOnly)trialsOnly.checked=!!AppState.rapidReviewTrialsOnly;const expandQuery=document.getElementById('rapidReviewExpandQuery');if(expandQuery)expandQuery.checked=AppState.rapidReviewExpandQuery!==false;const helper=document.getElementById('rapidReviewHelperUrl');if(helper)helper.value=AppState.rapidReviewHelperUrl||this.defaultHelperBase()},
-defaultHelperBase(){const saved=String(AppState.rapidReviewHelperUrl||localStorage.getItem('nma-pro-ctgov-helper')||'').trim();if(saved)return saved.replace(/\/$/,'');const origin=String(window.location?.origin||'').trim();if(/^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?$/i.test(origin))return origin.replace(/\/$/,'');return'http://127.0.0.1:8765'},
+defaultHelperBase(){const saved=String(AppState.rapidReviewHelperUrl||localStorage.getItem('nma-pro-ctgov-helper')||'').trim();if(saved)return saved.replace(/\/$/,'');const origin=String(window.location?.origin||'').trim();if(/^https?:\/\/(?:127\.0\.0\.1|localhost):8765$/i.test(origin))return origin.replace(/\/$/,'');return'http://127.0.0.1:8765'},
+hasConfiguredHelper(){return !!String(AppState.rapidReviewHelperUrl||localStorage.getItem('nma-pro-ctgov-helper')||'').trim()},
 getHelperBase(){const input=document.getElementById('rapidReviewHelperUrl');const base=String(input?.value||AppState.rapidReviewHelperUrl||this.defaultHelperBase()).trim().replace(/\/$/,'')||'http://127.0.0.1:8765';AppState.rapidReviewHelperUrl=base;try{localStorage.setItem('nma-pro-ctgov-helper',base)}catch(_){}if(input)input.value=base;return base},
-resetHelperBase(){try{localStorage.removeItem('nma-pro-ctgov-helper')}catch(_){}AppState.rapidReviewHelperUrl='';AppState.rapidReviewHelperHealth=null;const input=document.getElementById('rapidReviewHelperUrl');const base=this.defaultHelperBase();if(input)input.value=base;AppState.rapidReviewHelperUrl=base;this.renderHelperState();this.checkHelper(true)},
+resetHelperBase(){try{localStorage.removeItem('nma-pro-ctgov-helper')}catch(_){}AppState.rapidReviewHelperUrl='';AppState.rapidReviewHelperHealth=null;const input=document.getElementById('rapidReviewHelperUrl');const base=this.defaultHelperBase();if(input)input.value=base;this.renderHelperState()},
 setHelperStatus(message,tone='info'){const el=document.getElementById('rapidReviewHelperStatus');if(!el)return;const safe=Security.escapeHtml(message||'');el.innerHTML=safe?`<div class="alert alert--${tone}"><span class="alert__icon"></span><div class="alert__text">${safe}</div></div>`:''},
 renderHelperState(){const health=AppState.rapidReviewHelperHealth;if(!health){this.setHelperStatus('CT.gov helper status not checked yet. Recommended startup: start_nma_rapid_review.bat.','info');return}if(health.ok){this.setHelperStatus(`CT.gov helper ready at ${health.base}.`,'success');return}this.setHelperStatus(`CT.gov helper not reachable at ${health.base}. Use start_nma_rapid_review.bat or run python ctgov_proxy.py.`,'warning')},
 async checkHelper(silent=false){const base=this.getHelperBase();try{const payload=await this.fetchJSON(base+'/health');AppState.rapidReviewHelperHealth={ok:!!payload?.ok,base,checkedAt:new Date().toISOString(),service:String(payload?.service||'ctgov_proxy')};this.renderHelperState();return true}catch(err){AppState.rapidReviewHelperHealth={ok:false,base,checkedAt:new Date().toISOString(),error:String(err?.message||err)};if(silent)this.setHelperStatus(`CT.gov helper not detected at ${base}. Direct CT.gov access will be attempted first, then the helper if available.`,'info');else this.renderHelperState();return false}},
@@ -6524,7 +6700,7 @@ document.getElementById('rapidReviewHelperUrl')?.addEventListener('change',()=>{
 document.getElementById('checkRapidReviewHelperBtn')?.addEventListener('click',()=>this.checkHelper(false));
 document.getElementById('resetRapidReviewHelperBtn')?.addEventListener('click',()=>this.resetHelperBase());
 this.render();
-setTimeout(()=>this.checkHelper(true),0);
+if(this.hasConfiguredHelper())setTimeout(()=>this.checkHelper(true),0);
 },
 normalizeExtraction(raw){
 return{
@@ -7452,10 +7628,23 @@ resultsPanel.appendChild(synthesisGrid2);
 const artifactCard=document.createElement('div');
 artifactCard.className='card mt-6';
 artifactCard.innerHTML=`<div class="card__header"><span class="card__title" title="Per-run reproducibility artifact emitted automatically after analysis and robustness synthesis.">Run Reproducibility Artifact</span><div class="flex gap-2"><button class="btn btn--sm btn--ghost" id="exportRunArtifactBtn">Export Run Artifact</button></div></div><div class="card__body" id="runArtifactContainer"><p class="text-secondary text-center">Run analysis to emit reproducibility artifacts.</p></div>`;
-resultsPanel.appendChild(artifactCard)
+resultsPanel.appendChild(artifactCard);
+const snapshotWorkflowCard=document.createElement('div');
+snapshotWorkflowCard.className='card mt-6';
+snapshotWorkflowCard.innerHTML=`<div class="card__header"><span class="card__title" title="Persist result states and compare any two snapshots without losing them on refresh.">Snapshot Lab</span></div><div class="card__body"><div id="analysisSnapshotWorkflowContainer"><p class="text-secondary text-center">Run analysis to start saving snapshots of your results.</p></div><div class="mt-4" id="analysisSnapshotComparisonContainer"><p class="text-secondary text-center">Save at least two snapshots to compare ranking shifts and heterogeneity changes.</p></div></div>`;
+resultsPanel.appendChild(snapshotWorkflowCard);
+AnalysisSnapshots.loadFromStorage();
+AnalysisSnapshots.renderManager();
 }
+if(resultsPanel&&!document.getElementById('treatmentFocusContainer')){
+const focusCard=document.createElement('div');
+focusCard.className='card mt-6';
+focusCard.innerHTML=`<div class="card__header"><span class="card__title" title="Follow one treatment through ranking, pairwise effect estimates, direct support, and inconsistency.">Treatment Focus</span></div><div class="card__body" id="treatmentFocusContainer"><p class="text-secondary text-center">Run analysis to activate treatment drilldown.</p></div></div>`;
+resultsPanel.appendChild(focusCard)
 }
-function switchTab(tabId){document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.toggle('tab-btn--active',b.dataset.tab===tabId)});document.querySelectorAll('.tab-panel').forEach(p=>{p.classList.toggle('tab-panel--active',p.id===`panel-${tabId}`)})}
+if(resultsPanel&&document.getElementById('treatmentFocusContainer'))TreatmentFocusLab.render();
+}
+function switchTab(tabId){document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.toggle('tab-btn--active',b.dataset.tab===tabId)});document.querySelectorAll('.tab-panel').forEach(p=>{p.classList.toggle('tab-panel--active',p.id===`panel-${tabId}`)});window.TabWorkflowTools?.handleSwitch(tabId)}
 function initializePanels(){const panels=document.getElementById('tabPanels');panels.innerHTML=`
 <div id="panel-data" class="tab-panel tab-panel--active"><div class="card" style="margin-bottom:var(--space-4)"><div class="card__header"><span class="card__title">Study Data</span><div class="flex gap-2"><div class="download-dropdown" style="display:inline-block;"><button class="btn btn--sm btn--ghost" id="loadDatasetBtn" onclick="PlotDownloader.toggleMenu(this)">Load Dataset</button><div class="download-dropdown__menu"><button class="download-dropdown__item" onclick="BenchmarkDatasets.loadDataset('thrombolytics')">Thrombolytics (10 studies, OR)</button><button class="download-dropdown__item" onclick="BenchmarkDatasets.loadDataset('smoking')">Smoking Cessation (24 studies, OR)</button><button class="download-dropdown__item" onclick="BenchmarkDatasets.loadDataset('depression')">Antidepressants (15 studies, OR)</button><button class="download-dropdown__item" onclick="BenchmarkDatasets.loadDataset('painkillers')">NSAIDs Pain (12 studies, SMD)</button></div></div><button class="btn btn--sm btn--ghost" id="clearAllBtn">Clear</button><button class="btn btn--sm btn--secondary" id="addStudyBtn">+ Add Study</button>${PlotDownloader.createTableDropdown('studyTable','NMA_StudyData')}</div></div><div class="card__body" style="overflow-x:auto"><table class="data-table" id="studyTable"><thead><tr><th title="Name of the study (e.g., Smith 2020)">Study</th><th title="First treatment being compared">Arm 1</th><th title="Number of patients with the outcome in Arm 1 (e.g., deaths, cured)">E1</th><th title="Total number of patients in Arm 1">N1</th><th title="Average value in Arm 1 (for continuous outcomes like blood pressure)">M1</th><th title="How spread out the values are in Arm 1">SD1</th><th title="Drug dose in Arm 1 (mg) - needed for dose-response analysis">D1</th><th title="Treatment class for Arm 1 (e.g., SSRI) - used for class effect models">C1</th><th title="Second treatment being compared">Arm 2</th><th title="Number of patients with the outcome in Arm 2">E2</th><th title="Total number of patients in Arm 2">N2</th><th title="Average value in Arm 2 (for continuous outcomes)">M2</th><th title="How spread out the values are in Arm 2">SD2</th><th title="Drug dose in Arm 2 (mg) - needed for dose-response analysis">D2</th><th title="Treatment class for Arm 2 (e.g., SSRI) - used for class effect models">C2</th><th title="Year the study was published">Year</th><th title="Risk of Bias: low (good quality), high (potential problems), or unclear">ROB</th><th></th></tr></thead><tbody id="studyTableBody"></tbody></table></div></div><div class="card"><div class="card__header"><span class="card__title">Analysis Options</span></div><div class="card__body"><div class="flex gap-6 flex-wrap items-center"><div><label class="text-xs text-secondary" title="The baseline treatment - all other treatments will be compared against this one">Reference</label><select class="select mt-1" id="referenceSelect" style="min-width:120px"></select></div><div><label class="text-xs text-secondary" title="Is a lower value better (e.g., fewer deaths) or higher better (e.g., more cures)?">Direction</label><div class="flex gap-3 mt-1"><label class="checkbox-label"><input type="radio" name="direction" value="lower" checked> Lower better</label><label class="checkbox-label"><input type="radio" name="direction" value="higher"> Higher better</label></div></div><div><label class="text-xs text-secondary" title="Correction for small studies - HKSJ is recommended, makes confidence intervals wider when there are few studies">Small-Study Correction</label><select class="select mt-1" id="smallStudyCorrectionSelect"><option value="none">None</option><option value="hksj" selected>HKSJ</option><option value="kr">Kenward-Roger</option><option value="sj">Sidik-Jonkman</option><option value="mkh">Modified KH</option></select></div><div><label class="text-xs text-secondary" title="How to handle zero-event cells in binary outcomes. Align this with R settings for parity checks">Zero-Cell Correction</label><select class="select mt-1" id="zeroCellCorrectionSelect"><option value="haldane" selected>Haldane (0.5)</option><option value="tacc">TACC</option><option value="reciprocal">Reciprocal</option><option value="sweeting">Sweeting</option><option value="none">Near-zero</option><option value="exclude">Exclude double-zero</option></select></div><div><label class="text-xs text-secondary" title="Number of simulations used for ranking uncertainty and rank probabilities">Rank Simulations</label><input type="number" class="input mt-1" id="rankingSimInput" value="2000" min="200" max="50000" step="100" style="width:120px"></div><div><label class="text-xs text-secondary" title="Optional fixed seed for ranking reproducibility. Leave blank for deterministic auto-seed from analysis fingerprint">Rank Seed</label><input type="number" class="input mt-1" id="rankingSeedInput" placeholder="Auto" min="1" step="1" style="width:120px"></div><div><label class="checkbox-label" title="Shows the expected range if you did a new study - wider than confidence intervals because it accounts for between-study variation"><input type="checkbox" id="predictionCheckbox" checked> Prediction intervals</label></div><div class="feature-pills"><span class="feature-pill" title="Run a Bayesian analysis - gives probability distributions instead of point estimates">Bayesian</span><span class="feature-pill" title="Cross-validated I² - checks if heterogeneity estimate is reliable">CV-I²</span><span class="feature-pill" title="Check if results would apply to a different patient population">C-STREAM</span><span class="feature-pill" title="Rate the quality of evidence using the GRADE framework">GRADE</span></div></div></div></div></div>
 <div id="panel-guardian" class="tab-panel"><div class="grid grid-cols-2"><div class="card"><div class="card__header"><span class="card__title">Network Guardian</span><button class="btn btn--sm btn--ghost" id="recheckBtn">Re-check</button></div><div class="card__body"><div class="health-gauge"><svg class="health-gauge__svg" viewBox="0 0 180 180"><circle class="health-gauge__bg" cx="90" cy="90" r="78"></circle><circle class="health-gauge__progress health-gauge__progress--good" id="healthProgress" cx="90" cy="90" r="78" stroke-dasharray="490" stroke-dashoffset="490"></circle></svg><div class="health-gauge__value"><span class="health-gauge__number" id="healthScore">--</span><span class="health-gauge__label">Health</span></div></div><div class="stat-grid mt-6"><div class="stat-card"><div class="stat-card__value" id="integrityScore">--</div><div class="stat-card__label" title="Is your data complete and valid? Higher = fewer missing values and data errors">Integrity</div></div><div class="stat-card"><div class="stat-card__value" id="evidenceScore">--</div><div class="stat-card__label" title="How much evidence do you have? Based on number of studies and total patients">Evidence</div></div><div class="stat-card"><div class="stat-card__value" id="riskScore">--</div><div class="stat-card__label" title="Overall risk of problems with your analysis - considers bias, small studies, etc.">Risk</div></div></div></div></div><div class="card"><div class="card__header"><span class="card__title">Validation Checks</span></div><div class="card__body"><ul class="validation-list" id="validationList"></ul><div class="alert alert--info mt-4" id="recommendationAlert"><span class="alert__icon"></span><div class="alert__text" id="recommendationText">Run analysis to see recommendations</div></div></div></div></div><div class="card"><div class="card__header"><span class="card__title">Network Geometry</span></div><div class="card__body"><div class="stat-grid"><div class="stat-card"><div class="stat-card__value" id="agglomCoef">--</div><div class="stat-card__label" title="How clustered is your network? High values mean treatments tend to be compared within tight groups">Agglomeration</div></div><div class="stat-card"><div class="stat-card__value" id="meanPath">--</div><div class="stat-card__label" title="Average number of steps to get from one treatment to another. Lower = more connected network">Mean Path</div></div><div class="stat-card"><div class="stat-card__value" id="diversityIdx">--</div><div class="stat-card__label" title="Is evidence spread evenly? Low diversity means most evidence comes from a few comparisons">Diversity</div></div><div class="stat-card"><div class="stat-card__value" id="directProp">--</div><div class="stat-card__label" title="What percentage of treatment pairs have been directly compared in at least one study?">Direct Prop</div></div><div class="stat-card"><div class="stat-card__value" id="netDensity">--</div><div class="stat-card__label" title="How complete is the network? 1.0 = every treatment compared to every other treatment">Density</div></div><div class="stat-card"><div class="stat-card__value" id="effTreat">--</div><div class="stat-card__label" title="Effective number of treatments - accounts for how well-connected each treatment is">Eff. Treatments</div></div></div></div></div></div>
@@ -8476,6 +8665,36 @@ if(existingTable)existingTable.outerHTML=html;else outerContainer.innerHTML+=htm
 
 function renderThresholdAnalysis(results){const outerContainer=document.getElementById('thresholdOuterContainer');if(!outerContainer)return;const analysis=ThresholdAnalysis.analyze(results,1.0,AppState.effectMeasure);if(!analysis||!analysis.comparisons||analysis.comparisons.length===0){outerContainer.innerHTML='<p class="text-secondary text-center">Threshold analysis not available</p>';return}if(!outerContainer.querySelector('.download-dropdown')){const header=document.createElement('div');header.className='flex justify-between items-center mb-2';header.innerHTML=`<h4 style="font-size:14px;font-weight:600;color:var(--text-primary)">Threshold Results</h4>${PlotDownloader.createTableDropdown('thresholdContainer','NMA_Threshold')}`;outerContainer.insertBefore(header,outerContainer.firstChild)}const isRatio=['OR','RR','HR'].includes(AppState.effectMeasure);const alertClass=analysis.robustness.overallAssessment==='Robust'?'success':analysis.robustness.overallAssessment==='Moderately Robust'?'warning':'danger';const alertIcon=analysis.robustness.overallAssessment==='Robust'?'?':'?';let html=`<div class="alert alert--${alertClass} mb-3"><span class="alert__icon">${alertIcon}</span><div class="alert__text"><strong>${Security.escapeHtml(analysis.robustness.overallAssessment)}</strong>: Min bias to change decision = ${Security.escapeHtml(String(analysis.robustness.minimumBiasToChangeDecision??'N/A'))}</div></div>`;html+='<div id="thresholdContainer"><table class="data-table"><thead><tr><th>Treatment</th><th>Est</th><th>CI crosses null</th><th title="Bias in standard error units needed to change decision">Bias Threshold (SE)</th><th title="How robust is this result to potential bias?">Robustness</th></tr></thead><tbody>';analysis.comparisons.forEach(t=>{const cls=t.robustness==='Robust'?'text-success':t.robustness==='Moderate'?'text-warning':'text-danger';const est=isRatio?Math.exp(t.estimate):t.estimate;html+=`<tr><td>${Security.escapeHtml(t.treatment)}</td><td class="font-mono">${est.toFixed(3)}</td><td>${t.crossesDecisionThreshold?'Yes':'No'}</td><td class="font-mono">${Security.escapeHtml(String(t.biasThresholdSE??'N/A'))}</td><td class="${cls}">${Security.escapeHtml(t.robustness)}</td></tr>`});html+='</tbody></table></div>';const existingTable=outerContainer.querySelector('#thresholdContainer');if(existingTable)existingTable.outerHTML=html;else outerContainer.innerHTML+=html}
 
+const TreatmentFocusLab={
+selectedTreatment:'',
+selectedComparator:'',
+isRatioMeasure(){return['OR','RR','HR'].includes(AppState.effectMeasure)},
+formatNumber(value,digits=2){const num=Number(value);return Number.isFinite(num)?num.toFixed(digits):'—'},
+formatPValue(value){const num=Number(value);if(!Number.isFinite(num))return'—';return num<0.001?'<0.001':num.toFixed(3)},
+getTreatmentOrder(results){const seen=new Set(),order=[];const ranked=Array.isArray(AppState.ranking)?AppState.ranking.map(item=>String(item?.treatment||'')).filter(Boolean):[];ranked.concat(Array.isArray(results?.treatments)?results.treatments:[]).forEach(treatment=>{if(treatment&&!seen.has(treatment)){seen.add(treatment);order.push(treatment)}});return order},
+defaultTreatment(results,order){return order.find(treatment=>treatment!==results.reference)||order[0]||''},
+defaultComparator(results,focus,options){if(!options.length)return'';if(focus&&focus!==results.reference&&options.includes(results.reference))return results.reference;return options[0]},
+ensureSelection(results){const order=this.getTreatmentOrder(results);if(!order.length){this.selectedTreatment='';this.selectedComparator='';return{order,comparatorOptions:[]}}if(!order.includes(this.selectedTreatment))this.selectedTreatment=this.defaultTreatment(results,order);const comparatorOptions=order.filter(treatment=>treatment!==this.selectedTreatment);if(!comparatorOptions.includes(this.selectedComparator))this.selectedComparator=this.defaultComparator(results,this.selectedTreatment,comparatorOptions);return{order,comparatorOptions}},
+getRankingEntry(treatment){return Array.isArray(AppState.ranking)?AppState.ranking.find(item=>item.treatment===treatment)||null:null},
+getProcessedRows(){return Array.isArray(AppState.results?.processed)?AppState.results.processed:[]},
+getTreatmentRows(treatment){return this.getProcessedRows().filter(row=>String(row?.treatment1||'')===treatment||String(row?.treatment2||'')===treatment)},
+getDirectRows(t1,t2){return this.getProcessedRows().filter(row=>{const a=String(row?.treatment1||''),b=String(row?.treatment2||'');return(a===t1&&b===t2)||(a===t2&&b===t1)})},
+getNodeSplit(t1,t2){const rows=Array.isArray(AppState.results?.consistency)?AppState.results.consistency:[];return rows.find(row=>(row.t1===t1&&row.t2===t2)||(row.t1===t2&&row.t2===t1))||null},
+getPairCell(t1,t2){const league=AppState.results?.leagueTable;if(!league||!Array.isArray(league?.treatments)||!Array.isArray(league?.table))return null;const i=league.treatments.indexOf(t1),j=league.treatments.indexOf(t2);if(i<0||j<0)return null;const cell=league.table?.[i]?.[j];return cell&&!cell.isRef?cell:null},
+getEffectStrength(cell){if(!cell)return 0;return this.isRatioMeasure()?Math.abs(Math.log(Math.max(Number(cell.displayEst)||1,1e-9))):Math.abs(Number(cell.displayEst)||0)},
+supportDescriptor(row){const p=Number(row?.nodeSplit?.pInconsistency);if(Number.isFinite(p)&&p<0.05)return{tone:'danger',label:'Direct/indirect conflict'};if((row?.directCount||0)===0)return{tone:'warning',label:'Indirect only'};if((row?.directCount||0)===1)return{tone:'info',label:'Single direct study'};return{tone:'success',label:`${row.directCount} direct studies`}},
+decisionDescriptor(row){const p=Number(row?.nodeSplit?.pInconsistency);if(Number.isFinite(p)&&p<0.05)return{tone:'danger',label:'Conflict needs review'};if((row?.directCount||0)===0)return{tone:'warning',label:'Indirect comparison'};if(row?.cell?.significant&&(row?.directCount||0)>=2)return{tone:'success',label:'Most decision-ready'};if(row?.cell?.significant)return{tone:'info',label:'Signal with limited support'};return{tone:'warning',label:'Uncertain separation'}},
+badgeClass(tone){if(tone==='success')return'evidence-badge--high';if(tone==='danger')return'evidence-badge--low';return'evidence-badge--moderate'},
+signalLabel(row,focus){if(!row?.cell)return'No estimate';if(row.cell.significant)return row.cell.benefit?`Favors ${focus}`:`Favors ${row.other}`;return'Not statistically separated'},
+formatEstimateSummary(cell){if(!cell)return'Estimate unavailable';return`${AppState.effectMeasure} ${this.formatNumber(cell.displayEst,2)} (${this.formatNumber(cell.displayLower,2)} to ${this.formatNumber(cell.displayUpper,2)})`},
+buildPairRows(focus,order){return order.filter(other=>other!==focus).map(other=>{const cell=this.getPairCell(focus,other),directRows=this.getDirectRows(focus,other),nodeSplit=this.getNodeSplit(focus,other);return{other,cell,directCount:directRows.length,directStudies:Array.from(new Set(directRows.map((row,index)=>String(row?.name||`${focus}-${other}-${index+1}`)).filter(Boolean))),nodeSplit}}).filter(row=>row.cell)},
+sortStrength(a,b){const sigDiff=Number(!!b?.cell?.significant)-Number(!!a?.cell?.significant);if(sigDiff)return sigDiff;const directDiff=(b?.directCount||0)-(a?.directCount||0);if(directDiff)return directDiff;return this.getEffectStrength(b?.cell)-this.getEffectStrength(a?.cell)},
+sortCaution(a,b){const conflictA=Number(Number(a?.nodeSplit?.pInconsistency)<0.05),conflictB=Number(Number(b?.nodeSplit?.pInconsistency)<0.05);if(conflictB!==conflictA)return conflictB-conflictA;const againstA=Number(!(a?.cell?.benefit)),againstB=Number(!(b?.cell?.benefit));if(againstB!==againstA)return againstB-againstA;const directDiff=(a?.directCount||0)-(b?.directCount||0);if(directDiff)return directDiff;return this.getEffectStrength(b?.cell)-this.getEffectStrength(a?.cell)},
+renderHighlights(rows,focus,kind='strength'){if(!rows.length)return`<p class="text-sm text-secondary">${kind==='strength'?'No clear advantage stands out yet.':'No major caution flags in the current network view.'}</p>`;return`<ul class="text-sm" style="padding-left:18px;list-style:disc">${rows.map(row=>{const support=this.supportDescriptor(row);const signal=this.signalLabel(row,focus);return`<li><strong>${Security.escapeHtml(focus)} vs ${Security.escapeHtml(row.other)}</strong>: ${Security.escapeHtml(this.formatEstimateSummary(row.cell))} | ${Security.escapeHtml(signal)} | ${Security.escapeHtml(support.label)}${row.nodeSplit?` | node-split p=${Security.escapeHtml(this.formatPValue(row.nodeSplit.pInconsistency))}`:''}</li>`}).join('')}</ul>`},
+render(){const container=document.getElementById('treatmentFocusContainer');if(!container)return;if(!AppState.results||!Array.isArray(AppState.results?.treatments)||AppState.results.treatments.length<2||!Array.isArray(AppState.ranking)||!AppState.ranking.length){container.innerHTML='<p class="text-secondary text-center">Run analysis to activate treatment drilldown.</p>';return}const results=AppState.results,{order,comparatorOptions}=this.ensureSelection(results),focus=this.selectedTreatment||order[0]||'',focusRank=this.getRankingEntry(focus),focusRows=this.getTreatmentRows(focus),focusStudyCount=Array.from(new Set(focusRows.map((row,index)=>String(row?.name||`${focus}-study-${index+1}`)))).length,focusComparatorCount=Array.from(new Set(focusRows.map(row=>String(row?.treatment1||'')===focus?String(row?.treatment2||''):String(row?.treatment1||'')).filter(Boolean))).length,pairRows=this.buildPairRows(focus,order);if(!pairRows.length){container.innerHTML='<p class="text-secondary text-center">Treatment drilldown becomes available once pairwise estimates are available.</p>';return}if(!pairRows.some(row=>row.other===this.selectedComparator))this.selectedComparator=this.defaultComparator(results,focus,comparatorOptions);const pair=pairRows.find(row=>row.other===this.selectedComparator)||pairRows[0],headlineTone=this.decisionDescriptor(pair).tone,headlineSignal=this.signalLabel(pair,focus),support=this.supportDescriptor(pair),decision=this.decisionDescriptor(pair),heterogeneityI2=Number(results?.heterogeneity?.I2),networkLine=`${Security.escapeHtml(focus)} ranks #${Security.escapeHtml(String(focusRank?.rank??'—'))} of ${Security.escapeHtml(String(results.treatments.length))}. Against ${Security.escapeHtml(pair.other)}, the network estimate is ${Security.escapeHtml(this.formatEstimateSummary(pair.cell))} and ${Security.escapeHtml(headlineSignal.toLowerCase())}.`,supportLine=`Direct support: ${Security.escapeHtml(String(pair.directCount))} study row${pair.directCount===1?'':'s'}${pair.nodeSplit?` | node-split p=${Security.escapeHtml(this.formatPValue(pair.nodeSplit.pInconsistency))}`:''} | ${Security.escapeHtml(decision.label)}.`,bestRows=pairRows.filter(row=>row.cell?.benefit).sort((a,b)=>this.sortStrength(a,b)).slice(0,3),cautionRows=pairRows.filter(row=>!row.cell?.benefit||!row.cell?.significant||Number(row?.nodeSplit?.pInconsistency)<0.05||(row?.directCount||0)===0).sort((a,b)=>this.sortCaution(a,b)).slice(0,3),summaryRows=pairRows.map(row=>({row,descriptor:this.supportDescriptor(row)})),optionsHtml=order.map(treatment=>`<option value="${Security.escapeHtml(treatment)}"${treatment===focus?' selected':''}>${Security.escapeHtml(treatment)}</option>`).join(''),comparatorHtml=comparatorOptions.map(treatment=>`<option value="${Security.escapeHtml(treatment)}"${treatment===pair.other?' selected':''}>${Security.escapeHtml(treatment)}</option>`).join('');container.innerHTML=`<div class="grid grid-cols-3 gap-4 mb-4"><div><label class="text-xs text-secondary">Focus Treatment</label><select class="select mt-1" id="treatmentFocusSelect">${optionsHtml}</select></div><div><label class="text-xs text-secondary">Comparator</label><select class="select mt-1" id="treatmentComparatorSelect">${comparatorHtml}</select></div><div class="alert alert--info" style="margin:0"><span class="alert__icon"></span><div class="alert__text">Use this workspace to reconcile rank, pairwise effect, direct support, and inconsistency without switching between tables.</div></div></div><div class="alert alert--${headlineTone} mb-4"><span class="alert__icon"></span><div class="alert__text"><strong>${networkLine}</strong><br>${supportLine}</div></div><div class="stat-grid mb-4"><div class="stat-card"><div class="stat-card__value">#${focusRank?.rank??'—'}</div><div class="stat-card__label">Rank</div></div><div class="stat-card"><div class="stat-card__value">${this.formatNumber(focusRank?.pScore,3)}</div><div class="stat-card__label">P-score</div></div><div class="stat-card"><div class="stat-card__value">${Number.isFinite(Number(focusRank?.probBest))?(Number(focusRank.probBest)*100).toFixed(1)+'%':'—'}</div><div class="stat-card__label">P(best)</div></div><div class="stat-card"><div class="stat-card__value">${focusStudyCount||0}</div><div class="stat-card__label">Direct Study Rows</div></div><div class="stat-card"><div class="stat-card__value">${focusComparatorCount||0}</div><div class="stat-card__label">Direct Comparators</div></div><div class="stat-card"><div class="stat-card__value">${Number.isFinite(heterogeneityI2)?heterogeneityI2.toFixed(1)+'%':'—'}</div><div class="stat-card__label">Network I²</div></div></div><div class="grid grid-cols-2 gap-4"><div style="background:var(--surface-raised);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4)"><div class="flex justify-between items-center mb-3"><h4 style="font-size:14px;font-weight:600;color:var(--text-primary)">Focus vs ${Security.escapeHtml(pair.other)}</h4><span class="evidence-badge ${this.badgeClass(decision.tone)}">${Security.escapeHtml(decision.label)}</span></div><div class="stat-grid"><div class="stat-card"><div class="stat-card__value">${this.formatNumber(pair.cell?.displayEst,2)}</div><div class="stat-card__label">${Security.escapeHtml(AppState.effectMeasure)}</div></div><div class="stat-card"><div class="stat-card__value">${this.formatNumber(pair.cell?.displayLower,2)} to ${this.formatNumber(pair.cell?.displayUpper,2)}</div><div class="stat-card__label">95% CI</div></div><div class="stat-card"><div class="stat-card__value">${pair.directCount}</div><div class="stat-card__label">Direct Study Rows</div></div><div class="stat-card"><div class="stat-card__value">${pair.nodeSplit?this.formatPValue(pair.nodeSplit.pInconsistency):'—'}</div><div class="stat-card__label">Node-Split p</div></div></div><p class="text-sm text-secondary mt-4">${Security.escapeHtml(focus)} appears in ${focusStudyCount} direct study row${focusStudyCount===1?'':'s'} across ${focusComparatorCount} direct comparison${focusComparatorCount===1?'':'s'}. Current support label: ${Security.escapeHtml(support.label)}.</p></div><div style="background:var(--surface-raised);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4)"><div class="grid grid-cols-2 gap-4"><div><h4 style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Strongest Signals</h4>${this.renderHighlights(bestRows,focus,'strength')}</div><div><h4 style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Caution Checks</h4>${this.renderHighlights(cautionRows,focus,'caution')}</div></div></div></div><div class="mt-4"><div class="flex justify-between items-center mb-2"><h4 style="font-size:14px;font-weight:600;color:var(--text-primary)">All ${Security.escapeHtml(focus)} Comparisons</h4><span class="text-xs text-secondary">${Security.escapeHtml(AppState.effectMeasure)} is shown as ${Security.escapeHtml(focus)} vs comparator.</span></div><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Comparator</th><th>Estimate</th><th>Signal</th><th>Direct rows</th><th>Node-split p</th><th>Evidence</th></tr></thead><tbody>${summaryRows.map(({row,descriptor})=>`<tr${row.other===pair.other?' style="background:rgba(56,189,248,0.08)"':''}><td>${Security.escapeHtml(row.other)}</td><td class="font-mono">${Security.escapeHtml(this.formatEstimateSummary(row.cell))}</td><td>${Security.escapeHtml(this.signalLabel(row,focus))}</td><td class="font-mono">${row.directCount}</td><td class="font-mono">${row.nodeSplit?Security.escapeHtml(this.formatPValue(row.nodeSplit.pInconsistency)):'—'}</td><td><span class="evidence-badge ${this.badgeClass(descriptor.tone)}">${Security.escapeHtml(descriptor.label)}</span></td></tr>`).join('')}</tbody></table></div></div>`;this.bind()},
+bind(){const focusEl=document.getElementById('treatmentFocusSelect'),comparatorEl=document.getElementById('treatmentComparatorSelect');if(focusEl)focusEl.onchange=event=>{this.selectedTreatment=String(event.target.value||'');this.selectedComparator='';this.render()};if(comparatorEl)comparatorEl.onchange=event=>{this.selectedComparator=String(event.target.value||'');this.render()}}
+};
+
 function renderCNMASplitPlot(cnmaResults){if(typeof Plotly==='undefined')return;const splitContainer=document.getElementById('cnmaSplitPlotContainer');if(splitContainer&&!splitContainer.querySelector('.download-dropdown')){const header=document.createElement('div');header.className='flex justify-between items-center mb-2';header.innerHTML=`<h4 style="font-size:14px;font-weight:600;color:var(--text-primary)">Component Split Plot</h4>${PlotDownloader.createDropdown('cnmaSplitPlot','NMA_CNMA_Split')}`;splitContainer.insertBefore(header,splitContainer.firstChild)}const colors=getThemeColors();const isRatio=['OR','RR','HR'].includes(AppState.effectMeasure);const sorted=cnmaResults.componentEffects.map(c=>({component:c.component,estimate:c.estimate,se:c.se,ci_lower:c.ci_lower,ci_upper:c.ci_upper,pValue:c.pValue,significant:(c.ci_lower>0&&c.ci_upper>0)||(c.ci_lower<0&&c.ci_upper<0)})).sort((a,b)=>b.estimate-a.estimate);const y=sorted.map(c=>c.component);const x=sorted.map(c=>isRatio?Math.exp(c.estimate):c.estimate);const xL=sorted.map(c=>isRatio?Math.exp(c.ci_lower):c.ci_lower);const xU=sorted.map(c=>isRatio?Math.exp(c.ci_upper):c.ci_upper);const barColors=sorted.map(c=>c.significant?colors.success:colors.textSecondary);Plotly.newPlot('cnmaSplitPlot',[{type:'bar',orientation:'h',y:y,x:x,error_x:{type:'data',symmetric:false,array:xU.map((u,i)=>u-x[i]),arrayminus:x.map((v,i)=>v-xL[i]),color:'rgba(0,0,0,0.3)',thickness:2,width:4},marker:{color:barColors,line:{color:'white',width:1}},text:x.map(v=>v.toFixed(2)),textposition:'outside',textfont:{color:colors.text,size:11},hovertemplate:'%{y}<br>Est: %{x:.3f}<extra></extra>'}],{paper_bgcolor:colors.background,plot_bgcolor:colors.background,xaxis:{title:{text:`Component Effect (${AppState.effectMeasure})`,font:{size:12}},type:isRatio?'log':'linear',gridcolor:colors.grid,tickfont:{color:colors.text}},yaxis:{gridcolor:colors.grid,tickfont:{color:colors.text}},shapes:[{type:'line',x0:isRatio?1:0,x1:isRatio?1:0,y0:-0.5,y1:y.length-0.5,line:{color:colors.danger,width:2,dash:'dash'}}],margin:{l:120,r:40,t:20,b:60},font:{color:colors.text}},{responsive:true});const tableOuterContainer=document.getElementById('cnmaComponentTableContainer');if(tableOuterContainer&&!tableOuterContainer.querySelector('.download-dropdown')){const header=document.createElement('div');header.className='flex justify-between items-center mb-2';header.innerHTML=`<h4 style="font-size:14px;font-weight:600;color:var(--text-primary)">Component Details</h4>${PlotDownloader.createTableDropdown('cnmaComponentTable','NMA_CNMA_Components')}`;tableOuterContainer.insertBefore(header,tableOuterContainer.firstChild)}let html='<div id="cnmaComponentTable"><table class="data-table"><thead><tr><th>Component</th><th>Estimate</th><th>SE</th><th>95% CI</th><th>P-value</th></tr></thead><tbody>';sorted.forEach(c=>{const est=isRatio?Math.exp(c.estimate):c.estimate;const ciL=isRatio?Math.exp(c.ci_lower):c.ci_lower;const ciU=isRatio?Math.exp(c.ci_upper):c.ci_upper;const rowCls=c.significant?'font-semibold':'';html+=`<tr class="${rowCls}"><td>${Security.escapeHtml(c.component)}</td><td class="font-mono">${est.toFixed(3)}</td><td class="font-mono">${c.se.toFixed(3)}</td><td class="font-mono">(${ciL.toFixed(3)}, ${ciU.toFixed(3)})</td><td class="font-mono">${c.pValue<0.001?'<0.001':c.pValue.toFixed(3)}</td></tr>`});const existingTable=tableOuterContainer.querySelector('#cnmaComponentTable');if(existingTable)existingTable.outerHTML=html+'</tbody></table></div>';else tableOuterContainer.innerHTML+=html+'</tbody></table></div>'}
 
 function renderBayesianResults(bayes){
@@ -9002,7 +9221,7 @@ showLoading('Computing contribution matrix...',72);await new Promise(r=>setTimeo
 AppState.contributionMatrix=ContributionMatrix.calculate(AppState.results.processed,AppState.results.matrices,AppState.results.tau2,_glsResult);}
 showLoading('Computing net heat plot...',75);await new Promise(r=>setTimeout(r,50));AppState.netHeatData=NetHeatPlot.analyze(AppState.results.processed,AppState.results.matrices,AppState.results.tau2);
 showLoading('Generating plots...',80);await new Promise(r=>setTimeout(r,50));
-renderNetworkGraph(AppState.studies,AppState.results.treatments);renderForestPlot(AppState.results);try{renderCaterpillarPlot(AppState.results);}catch(e){console.warn('Caterpillar plot:',e);}renderLeagueTable(AppState.results.leagueTable,AppState.effectMeasure);try{ComparisonHeatmap.render(AppState.results);}catch(e){console.warn('Comparison heatmap:',e);}renderRankingTable(AppState.ranking);renderRankogram(AppState.ranking);renderRankProbMatrix(AppState.ranking);renderSUCRACurves(AppState.ranking);updateHeterogeneityPanel(AppState.results.heterogeneity,AppState.results.tau2CI,AppState.results.effects.correctionMethod,AppState.results.modelSelection);renderFunnelPlot(AppState.results);renderConsistencyResults(AppState.results.consistency);renderConsistencyPlot(AppState.results.consistency);if(AppState.contributionMatrix&&AppState.contributionMatrix.applicable)renderContributionMatrix(AppState.contributionMatrix);if(AppState.netHeatData&&AppState.netHeatData.applicable)renderNetHeatPlot(AppState.netHeatData);renderCINeMAResults(AppState.cinemaResults);renderGRADEResults(AppState.gradeResults);renderEValues(AppState.results);renderThresholdAnalysis(AppState.results);
+renderNetworkGraph(AppState.studies,AppState.results.treatments);renderForestPlot(AppState.results);try{renderCaterpillarPlot(AppState.results);}catch(e){console.warn('Caterpillar plot:',e);}renderLeagueTable(AppState.results.leagueTable,AppState.effectMeasure);try{ComparisonHeatmap.render(AppState.results);}catch(e){console.warn('Comparison heatmap:',e);}renderRankingTable(AppState.ranking);renderRankogram(AppState.ranking);renderRankProbMatrix(AppState.ranking);renderSUCRACurves(AppState.ranking);updateHeterogeneityPanel(AppState.results.heterogeneity,AppState.results.tau2CI,AppState.results.effects.correctionMethod,AppState.results.modelSelection);renderFunnelPlot(AppState.results);renderConsistencyResults(AppState.results.consistency);renderConsistencyPlot(AppState.results.consistency);if(AppState.contributionMatrix&&AppState.contributionMatrix.applicable)renderContributionMatrix(AppState.contributionMatrix);if(AppState.netHeatData&&AppState.netHeatData.applicable)renderNetHeatPlot(AppState.netHeatData);renderCINeMAResults(AppState.cinemaResults);renderGRADEResults(AppState.gradeResults);renderEValues(AppState.results);renderThresholdAnalysis(AppState.results);TreatmentFocusLab.render();
 // POTH
 try{AppState.pothResult=POTHCalculator.calculate(AppState.ranking);renderPOTH(AppState.pothResult);announce('POTH and ranking enhancements ready');}catch(e){console.warn('POTH calculation failed:',e);}
 // Update tau2 slider range after analysis
@@ -11140,7 +11359,7 @@ restoreLoadedAnalysisState();
 if(AppState.externalComparison){const extContainer=document.getElementById('externalBenchmarkContainer');if(extContainer)ExternalBenchmark.render(extContainer,AppState.externalComparison)}renderGoldenParitySummary();refreshPostAnalysisSynthesis('session_load',false)
 updateIPDStatus();
 RapidReview.render();
-RapidReview.checkHelper(true);
+if(RapidReview.hasConfiguredHelper())RapidReview.checkHelper(true);
 RapidReview.setStatus(AppState.rapidReviewSummary?'Rapid-review workspace restored from session.':'Rapid-review workspace ready.','info');
 announce(`Session loaded: ${AppState.studies.length} studies`);
 recordAudit('session_loaded',{studies:AppState.studies.length});
@@ -12998,33 +13217,17 @@ document.getElementById('addStudyBtn').addEventListener('click',addStudy);
 document.getElementById('loadDemoBtn')?.addEventListener('click',loadDemo);
 document.getElementById('clearAllBtn').addEventListener('click',clearAll);
 document.getElementById('saveSnapshotBtn')?.addEventListener('click',()=>{
-const name=prompt('Snapshot name:','Snapshot '+(AnalysisSnapshots.saved.length+1));
-if(name)AnalysisSnapshots.save(name);
-if(AnalysisSnapshots.saved.length>=2){
-document.getElementById('compareSnapshotsBtn').style.display='inline-flex';
+const labelEl=document.getElementById('analysisSnapshotLabelInput');
+const result=AnalysisSnapshots.save(labelEl?.value?.trim()||undefined);
+if(!result.success){
+announce(result.message||'Run analysis first');
+return;
 }
+if(labelEl)labelEl.value='';
 });
 document.getElementById('compareSnapshotsBtn')?.addEventListener('click',()=>{
-const n=AnalysisSnapshots.saved.length;
-if(n<2){announce('Need at least 2 snapshots');return;}
-const result=AnalysisSnapshots.compare(n-2,n-1);
-if(!result)return;
-const esc=Security.escapeHtml;
-const container=document.getElementById('forestTableContainer')??document.getElementById('leagueTableContainer');
-if(!container)return;
-let html='<div class="card" style="margin-top:var(--space-4);"><div class="card__header"><div class="card__title">Snapshot Comparison: '+esc(result.snapshot1)+' vs '+esc(result.snapshot2)+'</div></div><div class="card__body">';
-html+='<div class="alert alert--'+(result.bestChanged?'warning':'success')+' mb-3"><div class="alert__text">'+(result.bestChanged?'Best treatment CHANGED between snapshots':'Best treatment unchanged')+'. '+result.nRankChanges+' rank change(s).</div></div>';
-html+='<table class="data-table"><thead><tr><th>Treatment</th><th>Rank ('+esc(result.snapshot1)+')</th><th>Rank ('+esc(result.snapshot2)+')</th><th>Change</th></tr></thead><tbody>';
-result.comparison.forEach(c=>{
-const arrow=c.rankChange>0?'<span style="color:var(--success-400)">\u2191'+c.rankChange+'</span>':c.rankChange<0?'<span style="color:var(--danger-400)">\u2193'+Math.abs(c.rankChange)+'</span>':'\u2014';
-html+='<tr><td>'+esc(c.treatment)+'</td><td class="font-mono text-center">'+c.rank1+'</td><td class="font-mono text-center">'+c.rank2+'</td><td class="text-center">'+arrow+'</td></tr>';
-});
-html+='</tbody></table></div></div>';
-const existing=container.querySelector('.snapshot-comparison');
-if(existing)existing.remove();
-const div=document.createElement('div');div.className='snapshot-comparison';div.innerHTML=html;
-container.parentElement.appendChild(div);
-announce('Comparing '+result.snapshot1+' vs '+result.snapshot2);
+const result=AnalysisSnapshots.renderSelectedComparison(true);
+if(!result)announce('Need at least 2 snapshots');
 });
 document.getElementById('recheckBtn').addEventListener('click',()=>{if(AppState.studies.length>0){AppState.guardian=NetworkGuardian.analyze(AppState.studies);updateGuardianPanel(AppState.guardian)}});
 document.getElementById('runBayesianBtn').addEventListener('click',runBayesian);
@@ -13946,6 +14149,139 @@ function downloadReport(comparison,ref,em,estimator,rData){
   URL.revokeObjectURL(url);
 }
 
+})();
+</script>
+<script>
+(() => {
+const STORAGE_KEY='nma-tab-recents-v1';
+const MAX_RECENTS=8;
+let ready=false;
+let metaById=new Map();
+let recentIds=[];
+let recentContainer=null;
+let searchInput=null;
+let emptyState=null;
+
+function loadRecents(){
+  try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch{return []}
+}
+
+function saveRecents(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(recentIds));
+}
+
+function activeTabId(){
+  return document.querySelector('.tab-btn--active')?.dataset?.tab||null;
+}
+
+function renderRecents(activeId=activeTabId()){
+  if(!recentContainer)return;
+  if(!recentIds.length){
+    recentContainer.innerHTML='<span class="tabs-recent-chip tabs-recent-chip--empty">No recent tabs yet.</span>';
+    return;
+  }
+  recentContainer.innerHTML='';
+  recentIds.forEach(tabId=>{
+    const meta=metaById.get(tabId);
+    if(!meta)return;
+    const chip=document.createElement('button');
+    chip.type='button';
+    chip.className='tabs-recent-chip';
+    if(activeId===tabId)chip.classList.add('tabs-recent-chip--active');
+    chip.dataset.tab=tabId;
+    chip.textContent=meta.label;
+    chip.title=meta.title||`Open ${meta.label}`;
+    recentContainer.appendChild(chip);
+  });
+}
+
+function rememberTab(tabId){
+  if(!tabId||!metaById.has(tabId))return;
+  recentIds=[tabId,...recentIds.filter(id=>id!==tabId)].slice(0,MAX_RECENTS);
+  saveRecents();
+  renderRecents(tabId);
+}
+
+function applyFilter(query){
+  const normalized=(query||'').trim().toLowerCase();
+  let matches=0;
+  metaById.forEach(meta=>{
+    const haystack=`${meta.label} ${meta.id} ${meta.title}`.toLowerCase();
+    const visible=!normalized||haystack.includes(normalized);
+    meta.button.hidden=!visible;
+    if(visible)matches+=1;
+  });
+  if(emptyState)emptyState.hidden=matches!==0;
+}
+
+function initTabWorkflowTools(){
+  searchInput=document.getElementById('nma-tab-search');
+  recentContainer=document.getElementById('nma-recent-tabs');
+  emptyState=document.getElementById('nma-tab-empty');
+  const clearButton=document.getElementById('nma-clear-recents');
+  const buttons=Array.from(document.querySelectorAll('.tab-btn[data-tab]'));
+  if(!searchInput||!recentContainer||!emptyState||!clearButton||!buttons.length)return;
+
+  metaById=new Map(buttons.map(button=>{
+    const spans=Array.from(button.querySelectorAll('span')).map(span=>span.textContent.trim()).filter(Boolean);
+    const label=spans.at(-1)||button.dataset.tab||'Untitled';
+    return[button.dataset.tab,{id:button.dataset.tab,label,title:button.getAttribute('title')||'',button}];
+  }));
+
+  recentIds=loadRecents().filter(tabId=>metaById.has(tabId));
+
+  searchInput.addEventListener('input',()=>applyFilter(searchInput.value));
+  searchInput.addEventListener('keydown',event=>{
+    if(event.key==='Escape'){
+      searchInput.value='';
+      applyFilter('');
+      searchInput.blur();
+    }
+  });
+
+  clearButton.addEventListener('click',()=>{
+    recentIds=[];
+    localStorage.removeItem(STORAGE_KEY);
+    renderRecents();
+  });
+
+  recentContainer.addEventListener('click',event=>{
+    const chip=event.target.closest('.tabs-recent-chip[data-tab]');
+    if(!chip)return;
+    const tabId=chip.dataset.tab;
+    if(typeof switchTab==='function')switchTab(tabId);
+    const tabButton=metaById.get(tabId)?.button;
+    tabButton?.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+  });
+
+  document.addEventListener('keydown',event=>{
+    if(event.defaultPrevented||event.key!=='/')return;
+    const target=event.target;
+    const isEditable=target&&(target.tagName==='INPUT'||target.tagName==='TEXTAREA'||target.tagName==='SELECT'||target.isContentEditable);
+    if(isEditable)return;
+    event.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  });
+
+  renderRecents();
+  applyFilter('');
+  ready=true;
+}
+
+window.TabWorkflowTools={
+  handleSwitch(tabId){
+    if(!ready)return;
+    rememberTab(tabId);
+    metaById.get(tabId)?.button?.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+  }
+};
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',initTabWorkflowTools,{once:true});
+}else{
+  initTabWorkflowTools();
+}
 })();
 </script>
 </body>

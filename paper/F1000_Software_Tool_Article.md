@@ -15,9 +15,9 @@ Corresponding author: Mahmood Ahmad (mahmood726@gmail.com)
 
 **Background:** Network meta-analysis (NMA) enables simultaneous comparison of multiple interventions from a connected evidence network, yet existing software typically separates the literature search, data analysis, and certainty assessment into distinct tools. This fragmentation increases the technical burden on clinical researchers and creates opportunities for transcription error. A unified platform that integrates rapid review, statistical analysis, and evidence grading within a single interface could reduce these barriers.
 
-**Methods:** NMA Pro v8.0 was developed as a client-side browser application distributed as a single HTML file requiring no server infrastructure or software installation. The platform implements frequentist NMA (DerSimonian-Laird, REML, Paule-Mandel, fixed-effect), Bayesian Hamiltonian Monte Carlo, component NMA, dose-response models, meta-regression, and publication bias methods. An integrated rapid review workspace queries PubMed, OpenAlex, and ClinicalTrials.gov through their public APIs, supporting title-and-abstract screening with exploratory natural language processing extraction. Certainty assessment follows the CINeMA and GRADE frameworks. Numerical accuracy was validated against the R package metafor across six benchmark scenarios.
+**Methods:** NMA Pro v8.0 was developed as a client-side browser application distributed as a single HTML file requiring no server infrastructure or software installation. The platform implements frequentist NMA (DerSimonian-Laird, REML, Paule-Mandel, fixed-effect), Bayesian component-wise random-walk Metropolis-Hastings MCMC, component NMA, dose-response models, meta-regression, and publication bias methods. An integrated rapid review workspace queries PubMed, OpenAlex, and ClinicalTrials.gov through their public APIs, supporting title-and-abstract screening with exploratory natural language processing extraction. Certainty assessment follows the CINeMA and GRADE frameworks. Numerical accuracy was validated against the R packages metafor (pairwise statistics) and netmeta (network estimates and P-scores) across six benchmark scenarios.
 
-**Results:** All six validation scenarios passed within pre-specified tolerances (maximum observed differences: tau-squared 0.000197, I-squared 3.14 x 10^-13 percentage points, Q-statistic 4.69 x 10^-13, pooled effect 0.000649, P-score 0.00501). Ranking reproducibility was ensured through a seeded pseudorandom number generator (xoshiro128** algorithm, 1500 simulations). The rapid review workspace performed deduplication across sources by DOI, PMID, NCT identifier, and normalized title, and generated draft study records from screened abstracts for manual verification before analysis.
+**Results:** All six validation scenarios passed within pre-specified tolerances (maximum observed differences: tau-squared 0.000197, I-squared 3.14 x 10^-13 percentage points, Q-statistic 4.69 x 10^-13, pooled effect 0.000649, P-score 0.00501). Ranking reproducibility was ensured through seeded pseudorandom number generators (xoshiro128** and xoshiro128+ algorithms, 1500 simulations). The rapid review workspace performed deduplication across sources by DOI, PMID, NCT identifier, and normalized title, and generated draft study records from screened abstracts for manual verification before analysis.
 
 **Conclusions:** NMA Pro v8.0 provides a no-installation browser platform that combines literature search, screening, network meta-analysis, and certainty assessment. The integrated rapid review workspace distinguishes it from existing NMA software and may reduce workflow fragmentation for clinical researchers conducting evidence synthesis.
 
@@ -33,23 +33,27 @@ The analytical workflow for NMA typically requires several distinct software too
 
 This separation creates practical barriers for clinical researchers who may lack programming expertise or institutional access to commercial software. Transferring data between tools introduces opportunities for transcription errors, version mismatches, and inconsistent data transformations that complicate reproducibility. Furthermore, certainty assessment frameworks such as CINeMA [9,12] and GRADE are often applied post hoc in separate documents rather than alongside the statistical output they evaluate, increasing the risk of discordance between reported estimates and their certainty ratings.
 
-NMA Pro v8.0 was developed to address these gaps. It is distributed as a single HTML file that runs entirely in the browser without server infrastructure, software installation, or programming knowledge. Its principal distinguishing feature is an integrated rapid review workspace that queries PubMed, OpenAlex, and ClinicalTrials.gov through their open APIs, enabling abstract-level screening and exploratory data extraction within the same application used for NMA. The application also implements advanced methods not commonly available in browser-based tools, including component NMA [10], dose-response modeling, meta-regression, and multiple publication bias diagnostics [8,16,17,18]. This article describes the software architecture, analytical methods, validation results, and limitations following the F1000Research Software Tool Article guidelines.
+NMA Pro v8.0 was developed to address these gaps. It is distributed as a single HTML file that runs entirely in the browser without server infrastructure, software installation, or programming knowledge. Its principal distinguishing feature is an integrated rapid review workspace that queries PubMed, OpenAlex, and ClinicalTrials.gov through their open APIs, enabling abstract-level screening and exploratory data extraction within the same application used for NMA. The application also implements advanced methods not commonly available in browser-based tools, including component NMA [10], dose-response modeling, meta-regression, and multiple publication bias diagnostics [8,16,17,18]. The weight-function sensitivity analysis implements pre-specified selection scenarios (mild, moderate, and severe) that apply p-value-based weights to study contributions [16], providing a transparent assessment of how selective publication might affect pooled estimates. This article describes the software architecture, analytical methods, validation results, and limitations following the F1000Research Software Tool Article guidelines.
 
 ## Methods
 
 ### Implementation
 
-NMA Pro v8.0 is implemented as a self-contained HTML file (8,272 lines) incorporating JavaScript for computation and visualization, CSS for interface design, and inline statistical engines. The application runs entirely client-side in modern web browsers (Chrome, Firefox, Edge, Safari) and requires no backend server, database, or software installation. All data remain on the user's machine and are never transmitted externally.
+NMA Pro v8.0 is implemented as a self-contained HTML file (13,641 lines) incorporating JavaScript for computation and visualization, CSS for interface design, and inline statistical engines. The application runs entirely client-side in modern web browsers (Chrome, Firefox, Edge, Safari) and requires no backend server, database, or software installation. All data remain on the user's machine and are never transmitted externally.
 
 ### Statistical methods
 
-The NMA engine implements four frequentist heterogeneity estimators: DerSimonian-Laird [5], restricted maximum likelihood (REML), Paule-Mandel, and fixed-effect (common-effect) models. Confidence intervals use confidence-level-aware critical values derived from the t-distribution for small degrees of freedom rather than fixed normal approximations [7]. Between-study heterogeneity is quantified through tau-squared, I-squared [6], and Cochran's Q-statistic.
+The NMA engine implements four frequentist heterogeneity estimators: DerSimonian-Laird [5], restricted maximum likelihood (REML) via iterative generalized least squares (convergence tolerance 10^-8, maximum 80 iterations), Paule-Mandel, and fixed-effect (common-effect) models. The REML estimator iteratively refits the GLS model with updated tau-squared until the generalized Q-statistic stabilizes, an approach that approximates the REML solution without directly maximizing the restricted log-likelihood [15]. Confidence intervals use confidence-level-aware critical values derived from the t-distribution for small degrees of freedom rather than fixed normal approximations [7]. Between-study heterogeneity is quantified through tau-squared, I-squared [6], and Cochran's Q-statistic.
 
-Bayesian analysis uses a Hamiltonian Monte Carlo (HMC) sampler with configurable chain count, iteration number, and burn-in period. Treatment rankings are computed as P-scores [3] for frequentist models and SUCRA [1] for Bayesian models, with rank probabilities estimated from 1500 Monte Carlo simulations using a seeded xoshiro128** pseudorandom number generator for exact reproducibility across sessions.
+Bayesian analysis uses a component-wise random-walk Metropolis-Hastings MCMC sampler with adaptive step sizes (targeting approximately 23.4% acceptance rate during burn-in), configurable chain count, iteration number, and burn-in period. Treatment effects and study-level baselines are each updated via Gaussian random-walk proposals, and the heterogeneity variance (tau-squared) is updated via a reflected random walk on the positive half-line. Treatment rankings are computed as P-scores [3] for frequentist models and SUCRA [1] for Bayesian models, with rank probabilities estimated from 1500 Monte Carlo simulations using seeded pseudorandom number generators (xoshiro128** for the Bayesian MCMC engine, xoshiro128+ for the main-thread ranking simulations) for exact reproducibility across sessions.
 
-Network consistency is assessed through node-splitting (comparing direct and indirect evidence for each treatment comparison) and design-by-treatment interaction tests. Publication bias diagnostics include Begg's rank correlation test, Egger's regression [8], PET-PEESE [17], the Copas selection model [16], and Duval and Tweedie's trim-and-fill method [18].
+Network consistency is assessed through node-splitting (comparing direct and indirect evidence for each treatment comparison) and design-by-treatment interaction tests. Publication bias diagnostics include Begg's rank correlation test, Egger's regression [8], PET-PEESE [17], weight-function sensitivity analysis [16], and Duval and Tweedie's trim-and-fill method [18].
 
 Additional analytical modules include component NMA (CNMA) for additive component models [10], dose-response NMA with Emax and cubic spline models, and meta-regression with user-specified covariates. The C-STREAM module addresses transportability and sample selection bias in evidence networks.
+
+### Data input format and multi-arm trials
+
+NMA Pro accepts pre-computed pairwise effect estimates (e.g., log odds ratios, log risk ratios, mean differences) with their standard errors as input. Each row represents a contrast between two treatments from a single study. For multi-arm trials, users enter each pairwise comparison as a separate row. The current implementation treats these contrasts as independent and does not adjust the variance-covariance matrix for the correlation induced by shared control arms. This is a recognized simplification whose impact increases with the proportion of multi-arm trials in the network. A future version will implement generalized least squares estimation using the full variance-covariance matrix with off-diagonal terms for multi-arm studies, correctly accounting for correlated contrasts within multi-arm trials. Additionally, an arm-level binomial NMA module is available for binary outcomes, which fits a Bayesian binomial likelihood model directly to event counts and sample sizes using MCMC, bypassing the normal approximation for effect size computation.
 
 ### Certainty assessment
 
@@ -69,13 +73,13 @@ NMA Pro includes an optional WebR module that loads the R package metafor [4] di
 
 ### Numerical validation
 
-Automated validation was performed across six benchmark scenarios comparing NMA Pro outputs against R (metafor) results. Pre-specified agreement tolerances were: tau-squared difference 0.005 or less, I-squared difference 5 percentage points or less, Q-statistic difference 0.5 or less, pooled effect difference 0.03 or less, and P-score difference 0.05 or less.
+Automated validation was performed across six benchmark scenarios comparing NMA Pro outputs against R reference implementations. Pairwise meta-analysis statistics (tau-squared, I-squared, Q-statistic, pooled effects) were validated against the metafor package [4], while NMA-specific outputs (network estimates, P-scores, consistency tests) were validated against netmeta [3]. The in-browser WebR module uses metafor for on-demand cross-validation of pairwise results. Pre-specified agreement tolerances were: tau-squared difference 0.005 or less, I-squared difference 5 percentage points or less, Q-statistic difference 0.5 or less, pooled effect difference 0.03 or less, and P-score difference 0.05 or less.
 
 ## Results
 
 ### Validation outcomes
 
-All six benchmark scenarios passed within pre-specified tolerances. Maximum observed differences were: tau-squared 0.000197, I-squared 3.14 x 10^-13 percentage points, Q-statistic 4.69 x 10^-13, pooled effect estimate 0.000649, and P-score 0.00501. These results confirm close numerical agreement between NMA Pro and the R reference implementation for the tested scenarios.
+All six benchmark scenarios passed within pre-specified tolerances. Maximum observed differences were: tau-squared 0.000197, I-squared 3.14 x 10^-13 percentage points, Q-statistic 4.69 x 10^-13, pooled effect estimate 0.000649, and P-score 0.00501. These results confirm close numerical agreement between NMA Pro and the R reference implementations (metafor for pairwise statistics, netmeta for network-level estimates) for the tested scenarios.
 
 ### Feature comparison
 
@@ -85,7 +89,7 @@ Table 1 compares the capabilities of NMA Pro v8.0 against five established NMA s
 
 | Feature | NMA Pro v8.0 | netmeta (R) | MetaInsight | CMA | GeMTC |
 |---|---|---|---|---|---|
-| Interactive GUI | Yes (browser) | No (CLI) | Yes (server) | Yes (desktop) | No (CLI) |
+| Interactive GUI | Yes (browser) | No (CLI) | Yes (server) | Yes (desktop) | Yes (desktop) |
 | No installation required | Yes | No | Partial | No | No |
 | Rapid review workspace | Yes | No | No | No | No |
 | CT.gov/PubMed/OpenAlex search | Yes | No | No | No | No |
@@ -95,9 +99,9 @@ Table 1 compares the capabilities of NMA Pro v8.0 against five established NMA s
 | Node-splitting | Yes | Yes | Yes | No | Yes |
 | SUCRA / P-scores | Yes | Yes | Yes | Yes | Yes |
 | Dose-response NMA | Yes | No | No | No | No |
-| Publication bias tests | Yes | No | No | Yes | No |
+| Publication bias tests | Yes | Partial (via metafor) | No | Yes | No |
 | In-browser R validation | Yes | N/A | No | No | No |
-| Seeded PRNG (reproducible ranks) | Yes | No | No | No | No |
+| Seeded PRNG (reproducible ranks) | Yes (built-in) | Yes (via set.seed()) | No | No | No |
 | Open source | Yes (MIT) | Yes (GPL) | Yes | No | Yes |
 
 ### Workflow
@@ -110,19 +114,23 @@ NMA Pro v8.0 integrates network meta-analysis, certainty assessment, and rapid r
 
 The client-side architecture ensures that all data processing occurs locally on the user's machine. No study data, search queries, or analytical results are transmitted to external servers. This design may be particularly advantageous in settings with data governance constraints, limited institutional IT support, or restricted internet connectivity after the initial page load. The single-file distribution model eliminates dependency management and version conflicts that can complicate R-based or server-based alternatives and allows the tool to be used on any device with a modern web browser.
 
-Numerical validation against metafor across six scenarios demonstrated close agreement within pre-specified tolerances across all key statistics (tau-squared, I-squared, Q, pooled effects, and P-scores). The seeded xoshiro128** pseudorandom number generator ensures that ranking simulations produce identical results across sessions, machines, and operating systems, addressing a reproducibility concern that arises when NMA ranking depends on unseeded Monte Carlo procedures.
+Numerical validation against metafor and netmeta across six scenarios demonstrated close agreement within pre-specified tolerances across all key statistics (tau-squared, I-squared, Q, pooled effects, and P-scores). The seeded xoshiro128**/128+ pseudorandom number generators ensure that ranking simulations produce identical results across sessions, machines, and operating systems, addressing a reproducibility concern that arises when NMA ranking depends on unseeded Monte Carlo procedures.
 
 The CINeMA and GRADE modules address a common gap in NMA software whereby statistical output and certainty assessment are performed in separate tools. By integrating these frameworks alongside the analytical engine and operating on the same underlying data, the platform may reduce the risk of inconsistency between reported effect estimates and their associated certainty ratings. Users can assess within-study bias, reporting bias, indirectness, imprecision, heterogeneity, and incoherence without exporting data to external spreadsheets or web tools.
 
-Several analytical features complement those of established platforms. Component NMA [10] extends analysis to multi-component interventions under an additive model, enabling evaluation of which treatment components drive observed effects. Dose-response NMA supports Emax and cubic spline models for treatments with varying dosage levels. Meta-regression allows exploration of effect modification by study-level covariates. Publication bias assessment through multiple complementary methods (Begg's rank correlation, Egger's regression, PET-PEESE, Copas selection model, trim-and-fill) provides a structured diagnostic battery rather than reliance on any single test [8,16,17,18].
+The contrast-based input architecture, whereby NMA Pro accepts pre-computed effect estimates rather than raw arm-level data, provides a practical pathway for handling rare binary events. When zero or near-zero event counts make standard normal approximations unreliable, users can compute appropriate effect measures externally using exact methods — such as exact conditional logistic regression, Peto's one-step method, Mantel-Haenszel odds ratios without continuity corrections, or Bayesian arm-level models — and import these estimates into NMA Pro for network synthesis. The platform does not impose the normal approximation at the effect size computation stage. Additionally, the built-in arm-level binomial NMA module fits a Bayesian binomial likelihood directly to 2x2 count data using MCMC sampling, avoiding the normal approximation entirely for binary outcomes. For within-app effect size computation from count data, configurable zero-cell handling is available (Haldane, treatment-arm continuity correction, or double-zero exclusion), and the automated data quality checker flags studies with rare events to alert users to potential approximation concerns.
+
+Several analytical features complement those of established platforms. Component NMA [10] extends analysis to multi-component interventions under an additive model, enabling evaluation of which treatment components drive observed effects. Dose-response NMA supports Emax and cubic spline models for treatments with varying dosage levels. Meta-regression allows exploration of effect modification by study-level covariates. Publication bias assessment through multiple complementary methods (Begg's rank correlation, Egger's regression, PET-PEESE, weight-function sensitivity analysis, trim-and-fill) provides a structured diagnostic battery rather than reliance on any single test [8,16,17,18].
+
+The Bayesian MCMC engine in NMA Pro draws on the generalised linear modelling framework for network meta-analysis described in the NICE Decision Support Unit Technical Support Documents [19]. This framework provides a principled approach to prior specification, model criticism, and inference in evidence synthesis. NMA Pro implements seven prior families for the heterogeneity parameter (half-normal, half-Cauchy, inverse-gamma, log-normal, uniform, exponential, and informative priors with user-specified location and scale), enabling sensitivity analysis across prior assumptions. The automated robustness module performs prior sensitivity analysis by re-estimating the network under multiple prior specifications, reporting the stability of treatment rankings and effect estimates. These capabilities address the growing recognition that Bayesian methods offer advantages in NMA through coherent probabilistic treatment ranking, natural incorporation of external information through priors, and more appropriate uncertainty quantification in sparse networks [19].
 
 ### Limitations
 
 Ten limitations should be considered when using NMA Pro v8.0:
 
-1. The application requires pre-computed pairwise effect estimates (e.g., log odds ratios, mean differences) with standard errors as input. It does not compute effect sizes from raw outcome data or arm-level counts.
+1. The primary NMA engine operates on contrast-level data (log effect sizes with standard errors). Arm-level effect size computation from 2x2 count data (events and sample sizes) is built in, with configurable zero-cell handling (Haldane, treatment-arm continuity correction, reciprocal, or double-zero exclusion). However, for continuous outcomes or time-to-event data, users must supply pre-computed effect estimates.
 
-2. The Bayesian MCMC implementation uses a simplified HMC sampler without the No-U-Turn Sampler (NUTS) adaptation or divergence diagnostics available in dedicated Bayesian frameworks such as Stan or JAGS.
+2. The Bayesian MCMC implementation uses a component-wise random-walk Metropolis-Hastings sampler with adaptive step sizes rather than gradient-based samplers (e.g., Hamiltonian Monte Carlo, NUTS) or Gibbs sampling with conjugate conditional distributions. It does not provide convergence diagnostics such as Rhat, effective sample size, or divergence tracing available in dedicated Bayesian frameworks such as Stan or JAGS.
 
 3. The rapid review NLP extraction is based on regular expression pattern matching rather than machine learning models. Extraction signals are exploratory and require manual verification.
 
@@ -202,8 +210,10 @@ The authors acknowledge the developers of metafor, netmeta, WebR, and the open A
 
 [15] Borenstein M, Hedges LV, Higgins JPT, Rothstein HR. Introduction to Meta-Analysis. Chichester: John Wiley & Sons; 2009.
 
-[16] Copas JB, Shi JQ. A sensitivity analysis for publication bias in systematic reviews. Biostatistics. 2001;2(4):463-477.
+[16] Vevea JL, Hedges LV. A general linear model for estimating effect size in the presence of publication bias. Psychometrika. 1995;60(3):419-435.
 
 [17] Stanley TD, Doucouliagos H. Meta-regression approximations to reduce publication selection bias. Res Synth Methods. 2014;5(1):60-78.
 
 [18] Duval S, Tweedie R. Trim and fill: a simple funnel-plot-based method of testing and adjusting for publication bias in meta-analysis. Biometrics. 2000;56(2):455-463.
+
+[19] Dias S, Welton NJ, Sutton AJ, Ades AE. NICE DSU Technical Support Document 2: A Generalised Linear Modelling Framework for Pairwise and Network Meta-Analysis of Randomised Controlled Trials. London: National Institute for Health and Care Excellence; 2014 (last updated September 2016).

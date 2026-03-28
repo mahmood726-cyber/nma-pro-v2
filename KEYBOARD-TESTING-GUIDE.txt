@@ -1,0 +1,152 @@
+========================================
+NMA PRO v6.2 - KEYBOARD ACCESSIBILITY
+QUICK TESTING GUIDE
+========================================
+
+HOW TO TEST THE ACCESSIBILITY FEATURES
+--------------------------------------
+
+1. OPEN THE APPLICATION
+   - Open nma-pro-v6.2-optimized.html in your browser
+   - Do NOT use your mouse for this test!
+
+2. SKIP LINK TEST
+   - Press TAB once when page loads
+   - You should see "Skip to main content" appear in top-left
+   - Press ENTER to skip to main content
+   - OR press TAB again to continue normal navigation
+
+3. HEADER NAVIGATION
+   - Continue pressing TAB to navigate through:
+     * Effect Measure dropdown (should have blue outline)
+     * Estimator dropdown
+     * Analysis Type dropdown
+     * "Run Analysis" button
+     * Theme toggle button
+
+4. TAB NAVIGATION
+   - After header, focus should move to the first tab (Data)
+   - You should see a clear blue outline around it
+
+   Try these keys:
+   - RIGHT ARROW: Move to next tab (Guardian)
+   - LEFT ARROW: Move back to previous tab
+   - HOME: Jump to first tab (Data)
+   - END: Jump to last tab (Export)
+   - ENTER or SPACE: Activate the focused tab
+
+   The content below should change when you activate a tab!
+
+5. CONTENT AREA
+   - Press TAB to move into the content area
+   - Continue tabbing through:
+     * Input fields in the data table
+     * Action buttons (Add Study, Load Demo, etc.)
+     * All other interactive elements
+
+6. FOCUS VISIBILITY
+   Look for these visual indicators:
+   - Blue outline (3px) around focused element
+   - Slight shadow/glow effect on buttons
+   - Clear contrast against background
+   - Focus indicator should NEVER disappear
+
+7. BUTTON ACTIVATION
+   When any button is focused:
+   - Press ENTER: Should activate the button
+   - Press SPACE: Should also activate the button
+
+8. ESCAPE KEY
+   - Click "Run Analysis" button
+   - While loading overlay is showing
+   - Press ESCAPE key
+   - Overlay should close
+
+9. REVERSE NAVIGATION
+   - Press SHIFT+TAB to go backwards
+   - Should navigate in reverse order
+   - Focus indicators should still be visible
+
+WHAT TO LOOK FOR
+----------------
+
+GOOD:
+✓ Every interactive element has a visible focus indicator
+✓ Focus indicator is clearly visible against all backgrounds
+✓ Arrow keys work to navigate between tabs
+✓ Enter/Space keys activate buttons
+✓ Tab order is logical (top to bottom, left to right)
+✓ Skip link appears and works
+✓ No keyboard traps (can always tab out)
+
+BAD:
+✗ No visible focus indicator on some elements
+✗ Focus indicator is too faint to see
+✗ Arrow keys don't work on tabs
+✗ Can't activate buttons with keyboard
+✗ Focus jumps around randomly
+✗ Can't tab out of a section (keyboard trap)
+✗ Skip link doesn't appear
+
+SCREEN READER TESTING (Optional)
+--------------------------------
+
+If you have a screen reader installed:
+
+1. Windows: Use NVDA (free) or JAWS
+   - Start screen reader
+   - Navigate to page
+   - Tab through controls
+   - Listen for announcements
+
+2. Expected Announcements:
+   - "Button, Run Analysis"
+   - "Tab, Data, selected" (on active tab)
+   - "Tab, Guardian, not selected" (on inactive tab)
+   - "Combobox, Effect Measure, Odds Ratio"
+   - "Switched to [tab name] tab" (when switching)
+
+3. Mac: Use VoiceOver (built-in)
+   - Press CMD+F5 to start VoiceOver
+   - Use VO+RIGHT ARROW to navigate
+   - Listen for proper role announcements
+
+BROWSER COMPATIBILITY
+--------------------
+
+Test in multiple browsers:
+- Chrome / Edge (Chromium)
+- Firefox
+- Safari (Mac)
+
+All features should work identically!
+
+COMMON ISSUES & SOLUTIONS
+-------------------------
+
+Issue: Focus indicators not visible
+Solution: Check browser zoom level, try 100%
+
+Issue: Arrow keys not working on tabs
+Solution: Make sure a tab button is focused (press TAB until you reach tabs)
+
+Issue: Skip link doesn't appear
+Solution: Press TAB when page FIRST loads, before any other interaction
+
+Issue: Can't see which element is focused
+Solution: The browser might have disabled focus indicators - this is now fixed!
+
+REPORTING ISSUES
+----------------
+
+If you find any accessibility issues, note:
+1. Which element has the problem
+2. What you expected to happen
+3. What actually happened
+4. Which browser you're using
+5. Any error messages in console (F12)
+
+========================================
+Last Updated: 2025-12-10
+NMA Pro v6.2 - Accessibility Enhanced
+========================================
