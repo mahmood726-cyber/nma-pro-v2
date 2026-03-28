@@ -1,0 +1,96 @@
+{
+  "title": "NMA Pro: A Browser-Based Network Meta-Analysis Platform with Integrated Rapid Review",
+  "slug": "nma-pro-browser-platform",
+  "author": "Mahmood Ahmad",
+  "date": "2026-03-26",
+  "body": "Can a single browser file replace the multi-tool workflow of network meta-analysis, from literature search through certainty assessment? NMA Pro v8.0 is a 14,313-line self-contained HTML application implementing frequentist NMA with four heterogeneity estimators, Bayesian Monte Carlo, component NMA, dose-response modeling, and eight publication bias methods, validated against R metafor across six benchmark scenarios. The platform integrates PubMed, OpenAlex, and ClinicalTrials.gov queries for abstract screening with deduplication, and implements CINeMA and GRADE certainty frameworks alongside statistical output. All six validation scenarios passed within pre-specified tolerances, with maximum observed differences of 0.000197 for tau-squared and 0.000649 for the pooled effect. Ranking reproducibility was ensured through a seeded xoshiro128-star-star pseudorandom generator with 1,500 Monte Carlo simulations producing identical P-scores across sessions. These results suggest browser-native NMA can match dedicated statistical packages while reducing workflow fragmentation for clinical researchers. However, the tool cannot yet replace server-based Bayesian frameworks for models requiring extended Markov chain convergence beyond browser memory constraints.",
+  "word_count": 156,
+  "sentence_count": 7,
+  "sentences": [
+    {
+      "role": "Question",
+      "text": "Can a single browser file replace the multi-tool workflow of network meta-analysis, from literature search through certainty assessment?"
+    },
+    {
+      "role": "Dataset",
+      "text": "NMA Pro v8.0 is a 14,313-line self-contained HTML application implementing frequentist NMA with four heterogeneity estimators, Bayesian Monte Carlo, component NMA, dose-response modeling, and eight publication bias methods, validated against R metafor across six benchmark scenarios."
+    },
+    {
+      "role": "Method",
+      "text": "The platform integrates PubMed, OpenAlex, and ClinicalTrials.gov queries for abstract screening with deduplication, and implements CINeMA and GRADE certainty frameworks alongside statistical output."
+    },
+    {
+      "role": "Primary result",
+      "text": "All six validation scenarios passed within pre-specified tolerances, with maximum observed differences of 0.000197 for tau-squared and 0.000649 for the pooled effect."
+    },
+    {
+      "role": "Robustness",
+      "text": "Ranking reproducibility was ensured through a seeded xoshiro128-star-star pseudorandom generator with 1,500 Monte Carlo simulations producing identical P-scores across sessions."
+    },
+    {
+      "role": "Interpretation",
+      "text": "These results suggest browser-native NMA can match dedicated statistical packages while reducing workflow fragmentation for clinical researchers."
+    },
+    {
+      "role": "Boundary",
+      "text": "However, the tool cannot yet replace server-based Bayesian frameworks for models requiring extended Markov chain convergence beyond browser memory constraints."
+    }
+  ],
+  "notes": {
+    "app": "NMA Pro v8.0",
+    "data": "Six metafor benchmark scenarios; PubMed/OpenAlex/CT.gov APIs",
+    "code": "https://github.com/mahmood726-cyber/nma-pro-v2",
+    "doi": "",
+    "version": "8.0",
+    "date": "2026-03-26",
+    "validation": "DRAFT"
+  },
+  "type": "methods",
+  "primary_estimand": "Pooled treatment effect (SMD/OR/RR)",
+  "validation": {
+    "status": "fail",
+    "checks": [
+      {
+        "name": "single paragraph",
+        "ok": true,
+        "detail": "Body must not contain blank-line paragraph breaks."
+      },
+      {
+        "name": "sentence count",
+        "ok": true,
+        "detail": "Found 7 sentences."
+      },
+      {
+        "name": "word count",
+        "ok": true,
+        "detail": "Found 156 words."
+      },
+      {
+        "name": "no headings",
+        "ok": true,
+        "detail": "No markdown headings allowed in body."
+      },
+      {
+        "name": "no links",
+        "ok": true,
+        "detail": "No links or DOI links allowed in body."
+      },
+      {
+        "name": "result sentence has interval",
+        "ok": false,
+        "detail": "Sentence 4 should include a confidence interval."
+      },
+      {
+        "name": "result sentence has estimand",
+        "ok": false,
+        "detail": "Sentence 4 should name an effect measure or test metric."
+      },
+      {
+        "name": "boundary sentence present",
+        "ok": true,
+        "detail": "Sentence 7 should express a limitation, harm, or scope boundary."
+      }
+    ]
+  },
+  "schema": "e156-v0.2"
+}
