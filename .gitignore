@@ -34,3 +34,11 @@ nma-pro-v7.0-optimized.fixed.html
 nma-pro-v8.0.backup-*.html
 nma-pro-v8.0.backup_*.html
 nma-pro-v8.0.html.pre_*
+
+# Sentinel pre-push hook output (auto-generated per session)
+STUCK_FAILURES.md
+STUCK_FAILURES.jsonl
+sentinel-findings.md
+sentinel-findings.jsonl
+review-findings.md
+review-findings.jsonl
