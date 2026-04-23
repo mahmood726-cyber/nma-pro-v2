@@ -3,7 +3,7 @@
   "slug": "nma-pro-browser-platform",
   "author": "Mahmood Ahmad",
   "date": "2026-03-26",
-  "path": "C:\\HTML apps\\NMAhtml",
+  "path": "C:\\HTML apps\\nma-pro-v2",
   "type": "methods",
   "primary_estimand": "Pooled treatment effect (SMD/OR/RR)",
   "summary": "A 14,000-line single-file HTML application delivering frequentist and Bayesian NMA with integrated literature search, screening, and CINeMA certainty assessment.",
