@@ -4,8 +4,7 @@
 A Comparison-Adjusted Funnel Plot has been successfully added to the NMA Pro v6.2 application. This advanced visualization helps detect publication bias in network meta-analysis by centering each comparison at its pooled effect and plotting residuals.
 
 ## Location
-The feature is implemented in the **Heterogeneity tab** (`panel-heterogeneity`) of the application at:
-`C:\Users\user\OneDrive - NHS\Documents\NMAhtml\nma-pro-v6.2-optimized.html`
+The feature is implemented in the **Heterogeneity tab** (`panel-heterogeneity`) of the repo-local NMA Pro HTML application.
 
 ## Implementation Details
 

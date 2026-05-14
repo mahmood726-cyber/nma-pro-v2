@@ -12,8 +12,8 @@ STATUS: ✓ COMPLETE AND READY FOR USE
 │ MAIN APPLICATION FILE                                          │
 └────────────────────────────────────────────────────────────────┘
 
-  Location: C:\Users\user\OneDrive - NHS\Documents\NMAhtml\
-  File: nma-pro-v6.2-optimized.html
+  Location: repository root
+  File: repo-local NMA Pro HTML application
 
   Original: 645 lines, 174 KB
   Updated:  720 lines, 180 KB

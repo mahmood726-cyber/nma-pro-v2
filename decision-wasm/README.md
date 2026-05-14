@@ -5,7 +5,7 @@ This module powers the Decision Analysis WASM backend in NMA Pro.
 ## Build
 
 ```powershell
-cd "C:\Users\user\OneDrive - NHS\Documents\NMAhtml\decision-wasm"
+cd decision-wasm
 rustup target add wasm32-unknown-unknown
 cargo build --release --target wasm32-unknown-unknown
 ```

@@ -10,7 +10,7 @@ KEYBOARD ACCESSIBILITY - COMPLETE
 Your NMA Pro v6.2 application now has full keyboard accessibility!
 
 FILE LOCATION:
-C:\Users\user\OneDrive - NHS\Documents\NMAhtml\nma-pro-v6.2-optimized.html
+Repo-local NMA Pro HTML application
 
 QUICK START:
 1. Open the file in your browser

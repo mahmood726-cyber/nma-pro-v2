@@ -3,7 +3,7 @@ KEYBOARD ACCESSIBILITY IMPLEMENTATION
 Changes Summary for NMA Pro v6.2
 ========================================
 
-FILE: C:\Users\user\OneDrive - NHS\Documents\NMAhtml\nma-pro-v6.2-optimized.html
+FILE: repo-local NMA Pro HTML application
 DATE: 2025-12-10
 ORIGINAL SIZE: 174 KB
 NEW SIZE: 180 KB

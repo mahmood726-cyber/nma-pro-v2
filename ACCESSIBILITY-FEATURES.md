@@ -4,8 +4,8 @@
 Comprehensive keyboard accessibility features have been successfully implemented in the NMA Pro application, making it fully navigable and operable without a mouse.
 
 ## File Location
-- **Main File**: `C:\Users\user\OneDrive - NHS\Documents\NMAhtml\nma-pro-v6.2-optimized.html`
-- **Backup File**: `C:\Users\user\OneDrive - NHS\Documents\NMAhtml\nma-pro-v6.2-optimized.html.backup`
+- **Main File**: repo-local NMA Pro HTML application
+- **Backup File**: repo-local backup artifact, when present
 
 ## Features Implemented
 
