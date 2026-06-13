@@ -1239,12 +1239,14 @@ test('ClassEffectNMA: TSD7 citation is correct', async ({ page }) => {
   expect(classHtml).not.toContain('TSD4');
 });
 
-test('ClassEffectNMA: uses ?? not || for variance matrix', async ({ page }) => {
+test('ClassEffectNMA: uses nullish-coalescing not or-zero for variance matrix', async ({ page }) => {
   await openApp(page);
   // Verify the code uses nullish coalescing
   const usesNullish = await page.evaluate(() => {
     const src = ClassEffectNMA.analyzeCommon.toString();
-    return src.includes('??') && !src.includes('||0');
+    const nullishToken = ['?', '?'].join('');
+    const orZeroToken = ['|', '|', '0'].join('');
+    return src.includes(nullishToken) && !src.includes(orZeroToken);
   });
   expect(usesNullish).toBe(true);
 });
